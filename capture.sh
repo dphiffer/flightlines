@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# Check lock file
-lockfile -r 0 /tmp/flightlines-capture.lock || exit 1
-
+lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
 videos="$basedir/videos/$location"
 
 min_time="55959"  # start after 05:59:59
 max_time="200000" # end before 20:00:00
+
+# Don't run more than one capture script at a time
+if [ -z "$flock" ] ; then
+  lockopts="-w 0 $lockfile"
+  exec env flock=1 flock $lockopts $0 "$@"
+fi
 
 # Cleanup old in-progress files
 rm $basedir/*.h264
@@ -53,5 +57,3 @@ do
 		fi
 	} >> $logfile
 done
-
-rm -f /tmp/flightlines-capture.lock

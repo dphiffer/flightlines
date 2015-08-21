@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Check lock file
-lockfile -r 0 /tmp/flightlines-sync.lock || exit 1
-
+lockfile="/tmp/flightlines-sync.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
 date=`date +%Y-%m-%d`
 time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
+
+# Don't run more than one sync script at a time
+if [ -z "$flock" ] ; then
+  lockopts="-w 0 $lockfile"
+  exec env flock=1 flock $lockopts $0 "$@"
+fi
+
 {
 	echo "-- $date $time --"
 
@@ -20,6 +25,3 @@ logfile="$basedir/logs/$location-sync-$date.log"
 
 # Sync log files
 rsync -r --exclude .keep-dir $basedir/logs/ flserver:/home/flightlines/$location/
-
-# Release lock file
-rm -f /tmp/flightlines-sync.lock
