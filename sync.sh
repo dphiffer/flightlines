@@ -3,7 +3,7 @@
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
 date=`date +%Y-%m-%d`
-time=`date +%H:%I:%S`
+time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
 {
 	echo "-- $date $time --"
