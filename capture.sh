@@ -10,19 +10,23 @@ max_time="200000" # end before 20:00:00
 
 # Don't run more than one capture script at a time
 if [ -z "$flock" ] ; then
-  lockopts="-w 0 $lockfile"
-  exec env flock=1 flock $lockopts $0 "$@"
+	echo "Could not get lock on $lockfile"
+	lockopts="-w 0 $lockfile"
+	exec env flock=1 flock $lockopts $0 "$@"
 fi
 
 # Cleanup old in-progress files
-rm $basedir/*.h264
+for file in $basedir/*.h264 ; do
+	if [ -e "$basedir/$file" ] ; then
+		rm "$basedir/$file"
+	fi
+done
 
-if [ ! -d "$videos" ]; then
-	mkdir -p $videos
+if [ ! -d "$videos" ] ; then
+	mkdir -p "$videos"
 fi
 
-while [ 1 ]
-do
+while [ 1 ] ; do
 	date=`date +%Y%m%d`
 	time=`date +%H%M%S`
 	log_date=`date +%Y-%m-%d`
@@ -33,20 +37,20 @@ do
 
 			h264_file="$location-$date-$time.h264"
 			mp4_file="$location-$date-$time.mp4"
-			echo $h264_file
+			echo "$h264_file"
 
 			# Capture video for 10 minutes
-			raspivid -t 60000 -n -w 960 -h 540 -b 12500000 -o $basedir/$h264_file
+			raspivid -t 600000 -n -w 960 -h 540 -b 12500000 -o "$basedir/$h264_file"
 
 			# Create the date folder if none exists
-			if [ ! -d "$videos/$date" ]; then
-				mkdir -p $videos/$date
+			if [ ! -d "$videos/$date" ] ; then
+				mkdir -p "$videos/$date"
 			fi
 
 			# Process mp4 file and move it to the videos folder
-			MP4Box -add $basedir/$h264_file $basedir/$mp4_file
-			mv $basedir/$mp4_file $videos/$date/$mp4_file
-			rm $basedir/$h264_file
+			MP4Box -add "$basedir/$h264_file" "$basedir/$mp4_file"
+			mv "$basedir/$mp4_file" "$videos/$date/$mp4_file"
+			rm "$basedir/$h264_file"
 
 		else
 
