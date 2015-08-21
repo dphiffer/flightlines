@@ -10,6 +10,9 @@ videos="$basedir/videos/$location"
 min_time="55959"  # start after 05:59:59
 max_time="200000" # end before 20:00:00
 
+# Cleanup old in-progress files
+rm $basedir/*.h264
+
 if [ ! -d "$videos" ]; then
 	mkdir -p $videos
 fi
