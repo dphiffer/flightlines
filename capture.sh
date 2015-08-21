@@ -25,7 +25,7 @@ do
 			echo "$filename"
 
 			# Capture video for 10 minutes
-			`raspivid -t 600000 -n -w 960 -h 540 -b 25000000 -o $basedir/$filename`
+			`raspivid -t 600000 -n -w 960 -h 540 -b 12500000 -o $basedir/$filename`
 
 			# Create the date folder if none exists
 			if [ ! -d "$videos/$date" ]; then
