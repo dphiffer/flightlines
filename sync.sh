@@ -9,7 +9,6 @@ logfile="$basedir/logs/$location-sync-$date.log"
 
 # Don't run more than one sync script at a time
 if [ -z "$flock" ] ; then
-	echo "Could not get lock on $lockfile"
 	lockopts="-w 0 $lockfile"
 	exec env flock=1 flock $lockopts $0 "$@"
 fi
