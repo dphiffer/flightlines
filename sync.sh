@@ -9,7 +9,7 @@ logfile="$basedir/logs/$location-sync-$date.log"
 	echo "-- $date $time --"
 
 	# Sync video files
-	rsync -rv $basedir/videos/$location flserver:/home/flightlines/
+	rsync -rvi --ignore-existing $basedir/videos/$location flserver:/home/flightlines/
 
 	# Update scripts
 	cd $basedir && git pull origin master -q
