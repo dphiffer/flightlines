@@ -2,9 +2,9 @@
 
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
-videos="$basedir/videos"
+videos="$basedir/$location"
 
-min_time="55959" # start after 05:59:59
+min_time="55959"  # start after 05:59:59
 max_time="200000" # end before 20:00:00
 
 if [ ! -d "$videos" ]; then
@@ -28,7 +28,7 @@ do
 		`mv $basedir/$filename $videos/$date/$filename`
 
 	else
-		echo "Waiting... $time"
+		echo "$location waiting $time"
 		sleep 60 # wait until $min_time
 	fi
 done
