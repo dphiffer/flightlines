@@ -7,7 +7,7 @@ time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
 {
 	echo "-- $date $time --"
-	rsync -r $basedir/videos/$location flserver:/home/flightlines/
+	rsync -rv $basedir/videos/$location flserver:/home/flightlines/
 	rsync -r --exclude .keep-dir $basedir/logs/ flserver:/home/flightlines/$location/
 	git pull origin master -q
 } >> $logfile
