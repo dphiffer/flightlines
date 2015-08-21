@@ -17,7 +17,7 @@ fi
 	echo "-- $date $time --"
 
 	# Sync video files
-	rsync -rvi --ignore-existing "$basedir/videos/$location" flserver:/home/flightlines/
+	rsync -rvi --ignore-existing "$basedir/videos/$location" flserver:/home/flightlines/videos/
 
 	# Update scripts
 	cd $basedir && git pull origin master -q
