@@ -26,7 +26,7 @@ do
 			echo $h264_file
 
 			# Capture video for 10 minutes
-			raspivid -t 600000 -n -w 960 -h 540 -b 12500000 -o $basedir/$h264_file
+			raspivid -t 60000 -n -w 960 -h 540 -b 12500000 -o $basedir/$h264_file
 
 			# Create the date folder if none exists
 			if [ ! -d "$videos/$date" ]; then
