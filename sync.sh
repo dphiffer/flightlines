@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Check lock file
+lockfile -r 0 /tmp/flightlines-sync.lock || exit 1
+
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
 date=`date +%Y-%m-%d`
@@ -17,3 +20,6 @@ logfile="$basedir/logs/$location-sync-$date.log"
 
 # Sync log files
 rsync -r --exclude .keep-dir $basedir/logs/ flserver:/home/flightlines/$location/
+
+# Release lock file
+rm -f /tmp/flightlines-sync.lock

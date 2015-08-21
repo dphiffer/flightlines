@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Check lock file
+lockfile -r 0 /tmp/flightlines-capture.lock || exit 1
+
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location=`cat $basedir/location`
 videos="$basedir/videos/$location"
@@ -47,3 +50,5 @@ do
 		fi
 	} >> $logfile
 done
+
+rm -f /tmp/flightlines-capture.lock
