@@ -2,21 +2,21 @@
 
 ## Preparing the Raspberry Pi before deployment
 
-1. [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
-2. Command line setup:  
-```
-sudo raspi-config  
-sudo apt-get update  
-sudo apt-get upgrade  
-sudo apt-get install git gpac  
-cd /home/pi  
-git clone https://github.com/dphiffer/flightlines.git  
-mkdir .ssh  
-chmod 700 .ssh  
-```
-3. Copy public/private keys, flightlines and flightlines.pub, to .ssh (not public)
-4. Copy .ssh/flightlines.pub to .ssh/authorized_keys (to make logging in easier)
-5. `chmod 600 .ssh/*`
+* [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
+* Command line setup:  
+    ```
+    sudo raspi-config  
+    sudo apt-get update  
+    sudo apt-get upgrade  
+    sudo apt-get install git gpac  
+    cd /home/pi  
+    git clone https://github.com/dphiffer/flightlines.git  
+    mkdir .ssh  
+    chmod 700 .ssh  
+    ```
+* Copy public/private keys, flightlines and flightlines.pub, to .ssh (not public)
+* Copy .ssh/flightlines.pub to .ssh/authorized_keys (to make logging in easier)
+* `chmod 600 .ssh/*`
 
 ### crontab -e
 
