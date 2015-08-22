@@ -39,13 +39,13 @@ while [ 1 ] ; do
 	comp_time=`echo $time | sed 's/^0*//'`
 	logfile="$basedir/logs/$location-capture-$log_date.log"
 	{
-		if (( $comp_time > $min_time )) && (( $comp_time < $max_time )); then
+		if (( $comp_time > $min_time )) && (( $comp_time < $max_time )) ; then
 
 			h264_file="$location-$date-$time.h264"
 			mp4_file="$location-$date-$time.mp4"
 			echo "$h264_file"
 
-			# Capture video for 10 minutes
+			# Capture video
 			raspivid \
 				--nopreview \
 				--timeout $timeout \
