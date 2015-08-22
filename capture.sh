@@ -3,14 +3,21 @@
 lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location="nowhere"
+timeout=600000 # 10 minutes
 
 if [ -f "$basedir/location" ] ; then
 	location=`cat $basedir/location`
 else
+	# Use default 'nowhere'
 	echo "Warning: no 'location' file found."
 fi
 
 videos="$basedir/videos/$location"
+
+# Override timeout with first param
+if [ -n "$1" ] ; then
+	timeout="$1"
+fi
 
 min_time="55959"  # start after 05:59:59
 max_time="200000" # end before 20:00:00
@@ -41,7 +48,7 @@ while [ 1 ] ; do
 			# Capture video for 10 minutes
 			raspivid \
 				--nopreview \
-				--timeout 600000 \
+				--timeout $timeout \
 				--width 960 \
 				--height 540 \
 				--bitrate 12500000 \
