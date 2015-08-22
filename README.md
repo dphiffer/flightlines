@@ -1,21 +1,35 @@
 # Flight Lines
 
+## Materials
+
+* [Raspberry Pi 2](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/)
+* [USB Wifi Dongle](https://www.raspberrypi.org/products/usb-wifi-dongle/)
+* [Pi Camera Module](https://www.raspberrypi.org/products/camera-module/)
+* [Raspberry Pi Case](https://www.raspberrypi.org/products/raspberry-pi-case/)
+* [Outdoor lighting enclosure](http://www.newegg.com/Product/Product.aspx?Item=N82E16803001092) (specific model isn't important)
+* [6 foot USB cable](http://www.newegg.com/Product/Product.aspx?Item=N82E16812576072)
+
+## Physical enclosure
+
+(Coming)
+
 ## Preparing the Raspberry Pi before deployment
 
 * [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
-* Command line setup:
+* Initial command line setup:
 ```
-sudo raspi-config  
-sudo apt-get update  
-sudo apt-get upgrade  
-sudo apt-get install git gpac  
-cd /home/pi  
-git clone https://github.com/dphiffer/flightlines.git  
-mkdir .ssh  
-chmod 700 .ssh  
+sudo raspi-config
+passwd
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install git gpac
+cd /home/pi
+git clone https://github.com/dphiffer/flightlines.git
+mkdir .ssh
+chmod 700 .ssh
 ```
-* Copy public/private keys, flightlines and flightlines.pub, to .ssh (not publicly released)
-* Copy .ssh/flightlines.pub to .ssh/authorized_keys (to make logging in easier)
+* Copy public/private keys, `flightlines` and `flightlines.pub`, to `.ssh` (these are not distributed currently)
+* Copy `.ssh/flightlines.pub` to `.ssh/authorized_keys` (to make logging in easier)
 * `chmod 600 .ssh/*`
 
 ### crontab -e
@@ -69,6 +83,14 @@ address 10.0.47.2
 netmask 255.255.255.0
 gateway 10.0.47.1
 broadcast 255.255.255.255
+```
+
+### Shutdown before deployment
+
+Everything is ready to go!
+
+```
+sudo shutdown -h now
 ```
 
 ## On-site deployment
