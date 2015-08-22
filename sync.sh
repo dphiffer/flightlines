@@ -25,18 +25,24 @@ touch "$lockfile"
 {
 	echo "-- $date $time --"
 
-	# Sync video files
-	rsync -rv --ignore-existing "$basedir/videos/$location" flserver:/home/flightlines/videos/
+	# Sync video files to server
+	rsync \
+		--recursive \
+		--verbose \
+		--ignore-existing \
+		--remove-source-files \
+		"$basedir/videos/$location" \
+		flserver:/home/flightlines/videos/
 
 	# Update scripts
 	cd "$basedir" && git pull origin master -q
-	
-	# Sync log files
-	rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/$location/"
 	
 	date=`date +%Y-%m-%d`
 	time=`date +%H:%M:%S`
 	echo "Finished at $date $time"
 } >> "$logfile"
+
+# Sync log files
+rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/$location/"
 
 rm "$lockfile"

@@ -39,7 +39,13 @@ while [ 1 ] ; do
 			echo "$h264_file"
 
 			# Capture video for 10 minutes
-			raspivid -t 600000 -n -w 960 -h 540 -b 12500000 -o "$basedir/$h264_file"
+			raspivid \
+				--nopreview \
+				--timeout 600000 \
+				--width 960 \
+				--height 540 \
+				--bitrate 12500000 \
+				--output "$basedir/$h264_file"
 
 			# Create the date folder if none exists
 			if [ ! -d "$videos/$date" ] ; then
