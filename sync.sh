@@ -14,8 +14,6 @@ date=`date +%Y-%m-%d`
 time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
 
-
-
 # Don't run more than one sync script at a time
 if [ -f "$lockfile" ] ; then
 	echo "Lock file exists: $lockfile"

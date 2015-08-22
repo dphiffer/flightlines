@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Cleanup lock files
-rm "/tmp/flightlines*"
+rm /tmp/flightlines*
 
 killall capture.sh
 killall sync.sh
