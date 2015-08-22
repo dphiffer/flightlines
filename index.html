@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Flight Lines</title>
+    <link rel="stylesheet" href="flight-lines.css">
+  </head>
+  <body>
+    <video id="v" width="960" height="540" autoplay>
+      <source src="http://phiffer.org/flightlines/jcal/20150821/jcal-20150821-194724.mp4" id="s" type="video/mp4">
+    </video>
+    <canvas id="c1" width="960" height="540"></canvas>
+    <div id="frame">
+      <div class="relative">
+        <div id="status">Loading...</div>
+      </div>
+      <canvas id="c2" width="960" height="540"></canvas>
+    </div>
+    <script src="flight-lines.js"></script>
+  </body>
+</html>

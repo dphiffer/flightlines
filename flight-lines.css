@@ -1,0 +1,44 @@
+body {
+	margin: 0;
+	background: #000;
+}
+
+#v, #c1 {
+	visibility: hidden;
+	position: absolute;
+	left: -100%;
+	top: -100%;
+	z-index: 2;
+}
+
+#frame,
+body.show-video #v {
+	visibility: visible;
+	position: absolute;
+	top: 50%;
+	left: 0;
+	margin-top: -360px;
+	width: 1280px;
+	height: 720px;
+}
+
+#c2 {
+	width: 1280px;
+	height: 720px;
+}
+
+.relative {
+	position: relative;
+}
+
+#status {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	padding: 5px;
+	font: 12px menlo, monospace;
+	text-align: right;
+	color: rgba(0, 0, 0, 0.5);
+	background: rgba(255, 255, 255, 0.8);
+	z-index: 3;
+}
