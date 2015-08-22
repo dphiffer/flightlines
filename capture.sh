@@ -2,7 +2,14 @@
 
 lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-location=`cat $basedir/location`
+location="nowhere"
+
+if [ -f "$basedir/location" ] ; then
+	location=`cat $basedir/location`
+else
+	echo "Warning: no 'location' file found."
+fi
+
 videos="$basedir/videos/$location"
 
 min_time="55959"  # start after 05:59:59

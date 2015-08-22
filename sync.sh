@@ -2,10 +2,19 @@
 
 lockfile="/tmp/flightlines-sync.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-location=`cat $basedir/location`
+location="nowhere"
+
+if [ -f "$basedir/location" ] ; then
+	location=`cat $basedir/location`
+else
+	echo "Warning: no 'location' file found."
+fi
+
 date=`date +%Y-%m-%d`
 time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
+
+
 
 # Don't run more than one sync script at a time
 if [ -f "$lockfile" ] ; then
