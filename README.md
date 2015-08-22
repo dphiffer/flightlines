@@ -14,7 +14,7 @@ git clone https://github.com/dphiffer/flightlines.git
 mkdir .ssh  
 chmod 700 .ssh  
 ```
-* Copy public/private keys, flightlines and flightlines.pub, to .ssh (not public)
+* Copy public/private keys, flightlines and flightlines.pub, to .ssh (not publicly released)
 * Copy .ssh/flightlines.pub to .ssh/authorized_keys (to make logging in easier)
 * `chmod 600 .ssh/*`
 
