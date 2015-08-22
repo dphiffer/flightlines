@@ -9,17 +9,10 @@ min_time="55959"  # start after 05:59:59
 max_time="200000" # end before 20:00:00
 
 # Don't run more than one capture script at a time
-if [ -z "$flock" ] ; then
-	lockopts="-w 0 $lockfile"
-	exec env flock=1 flock $lockopts $0 "$@"
+if [ -f "$lockfile" ] ; then
+	echo "Lock file exists: $lockfile"
+	exit 1
 fi
-
-# Cleanup old in-progress files
-for file in $basedir/*.h264 ; do
-	if [ -e "$basedir/$file" ] ; then
-		rm "$basedir/$file"
-	fi
-done
 
 if [ ! -d "$videos" ] ; then
 	mkdir -p "$videos"
