@@ -4,6 +4,11 @@ lockfile="/tmp/flightlines-sync.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location="nowhere"
 
+# Don't run if stopped
+if [ -f "$basedir/stopped" ] ; then
+	exit 1
+fi
+
 if [ -f "$basedir/location" ] ; then
 	location=`cat $basedir/location`
 else

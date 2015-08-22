@@ -5,6 +5,11 @@ basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location="nowhere"
 timeout=600000 # 10 minutes
 
+# Don't run if stopped
+if [ -f "$basedir/stopped" ] ; then
+	exit 1
+fi
+
 if [ -f "$basedir/location" ] ; then
 	location=`cat $basedir/location`
 else
