@@ -4,7 +4,7 @@
 
 1. [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
 2. Command line setup:  
-	
+	```  
 	sudo raspi-config  
 	sudo apt-get update  
 	sudo apt-get upgrade  
