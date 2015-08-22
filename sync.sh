@@ -30,13 +30,13 @@ touch "$lockfile"
 
 	# Update scripts
 	cd "$basedir" && git pull origin master -q
+	
+	# Sync log files
+	rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/$location/"
+	
+	date=`date +%Y-%m-%d`
+	time=`date +%H:%M:%S`
+	echo "Finished at $date $time"
 } >> "$logfile"
-
-# Sync log files
-rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/$location/"
-
-date=`date +%Y-%m-%d`
-time=`date +%H:%M:%S`
-echo "Finished at $date $time"
 
 rm "$lockfile"
