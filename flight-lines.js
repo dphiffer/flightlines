@@ -12,8 +12,8 @@ var ctx2 = c2.getContext('2d');
 
 var w = 960;
 var h = 540;
-var threshold = 15;
-var countdown = 60;
+var threshold = 30;
+var countdown = 600;
 
 var decayStep = 1.12;
 var decayLimit = 200;
@@ -78,8 +78,8 @@ function setup_video() {
 	}, false);
 	v.addEventListener('ended', function() {
 		save_image();
-		threshold = 15;
-		countdown = 60;
+		threshold = 30;
+		countdown = 600;
 		ctx2.fillStyle = '#ffffff';
 		ctx2.fillRect(0, 0, w, h);
 		for (i = 0; i < frame1.data.length; i += 4) {
