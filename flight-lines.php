@@ -73,7 +73,14 @@ class FlightLines {
 		if ($query->rowCount() == 0) {
 			return null;
 		}
-		return $query->fetch();
+		$video = $query->fetch();
+		$query = $this->db->prepare("
+			UPDATE video
+			SET status = 'in-progress'
+			WHERE id = ?
+		");
+		$query->execute(array($video['id']));
+		return $video;
 	}
 
 	function get_next_video($after_id) {
