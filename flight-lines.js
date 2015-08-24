@@ -1,15 +1,9 @@
 (function() {
 
-var videos = [
-	'MVI_3474.mp4',
-	'MVI_3474.mp4',
-	'MVI_3474.mp4'
-];
-var index = 0;
-
+var video_id = null;
 var started = false;
 var playing = false;
-var v = document.getElementById('v');
+var v; //= document.getElementById('v');
 var s = document.getElementById('s');
 var c1 = document.getElementById('c1');
 var ctx1 = c1.getContext('2d');
@@ -22,7 +16,7 @@ var threshold = 15;
 var countdown = 60;
 
 var decayStep = 1.12;
-var decayLimit = 225;
+var decayLimit = 200;
 
 var i, k0, k1, k2, diff;
 var frame0, frame1, frame2;
@@ -32,6 +26,36 @@ function init() {
 		console.log('Error: no browser support');
 		return;
 	}
+	next_video();
+	setup_controls();
+}
+window.addEventListener('DOMContentLoaded', init, false);
+
+function next_video() {
+  var request = new XMLHttpRequest();
+	request.onreadystatechange = function() {
+		var DONE = this.DONE || 4;
+		if (this.readyState === DONE) {
+			var response = JSON.parse(this.responseText);
+			document.getElementById('vh').innerHTML =
+				'<video id="v" width="960" height="540" autoplay>' +
+					'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
+				'</video>';
+			v = document.getElementById('v');
+			video_id = response.video.id;
+			setup_video();
+		}
+	};
+	var url = 'flight-lines.php?method=get_video';
+	if (video_id) {
+		url += '&after_id=' + video_id;
+	}
+	request.open('GET', url, true);
+	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	request.send(null);
+}
+
+function setup_video() {
 	v.addEventListener('canplay', function() {
 		if (!playing) {
 			console.log('canplay');
@@ -53,12 +77,8 @@ function init() {
 		})();
 	}, false);
 	v.addEventListener('ended', function() {
-		index = (index + 1) % videos.length;
-		v.currentTime = 0;
-		s.src = videos[index];
+		save_image();
 		threshold = 15;
-		v.load();
-		v.play();
 		countdown = 60;
 		ctx2.fillStyle = '#ffffff';
 		ctx2.fillRect(0, 0, w, h);
@@ -67,6 +87,7 @@ function init() {
 			frame2.data[i + 1] = 255;
 			frame2.data[i + 2] = 255;
 		}
+		next_video();
 	}, false);
 	v.addEventListener('timeupdate', function() {
 		var min = Math.floor(parseInt(v.currentTime) / 60);
@@ -78,16 +99,18 @@ function init() {
 			sec = '0' + sec;
 		}
 		var time = min + ':' + sec;
-	  document.getElementById('status').innerHTML = threshold + ' / ' + time;
+	  document.getElementById('status').innerHTML = video_id + ' / ' + threshold + ' / ' + time;
 	}, false);
 	
 	/*navigator.getUserMedia({
 		video: true,
 		audio: false
 	}, playHandler, errorHandler);*/
-	
-	document.addEventListener('keydown', function(e) {
-		console.log(e.keyCode);
+}
+
+function setup_controls() {
+  document.addEventListener('keydown', function(e) {
+		//console.log(e.keyCode);
 		var timeShift = e.shiftKey ? 60 : 10;
 		var threshShift = e.shiftKey ? 5 : 1;
 	  if (e.keyCode == 37) {
@@ -128,7 +151,15 @@ function init() {
 	}, false);
 }
 
-window.addEventListener('DOMContentLoaded', init, false);
+function save_image() {
+	var data_uri = c2.toDataURL();
+  var request = new XMLHttpRequest();
+	var url = 'flight-lines.php?method=save_rendering&id=' + video_id;
+	request.open('POST', url, true);
+	request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	request.send('image_data=' + encodeURIComponent(data_uri));
+}
 
 function render() {
 	if (!playing) {

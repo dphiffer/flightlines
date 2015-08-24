@@ -1,4 +1,6 @@
+config.php
 location
 videos/
 logs/*.log
 *.mp4
+db/.db_version

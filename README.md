@@ -6,7 +6,7 @@
 * [USB Wifi Dongle](https://www.raspberrypi.org/products/usb-wifi-dongle/)
 * [Pi Camera Module](https://www.raspberrypi.org/products/camera-module/)
 * [Raspberry Pi Case](https://www.raspberrypi.org/products/raspberry-pi-case/)
-* [Outdoor lighting enclosure](http://www.newegg.com/Product/Product.aspx?Item=N82E16803001092) (specific model isn't important)
+* [Outdoor lighting enclosure](http://www.newegg.com/Product/Product.aspx?Item=N82E16803001092)
 * [6 foot USB cable](http://www.newegg.com/Product/Product.aspx?Item=N82E16812576072)
 
 ## Physical enclosure
