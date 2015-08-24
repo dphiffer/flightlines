@@ -63,12 +63,12 @@ class FlightLines {
 	}
 
 	function get_pending_video() {
-	  $query = $this->db->query("
-	  	SELECT *
-	  	FROM video
-	  	WHERE status = 'pending'
-	  	ORDER BY created DESC
-	  	LIMIT 1
+		$query = $this->db->query("
+			SELECT *
+			FROM video
+			WHERE status = 'pending'
+			ORDER BY created
+			LIMIT 1
 		");
 		if ($query->rowCount() == 0) {
 			return null;
