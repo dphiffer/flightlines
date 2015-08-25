@@ -1,6 +1,6 @@
 (function() {
 
-var video_id = null;
+var currVideo = null;
 var started = false;
 var playing = false;
 var v; //= document.getElementById('v');
@@ -42,13 +42,13 @@ function next_video() {
 					'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
 				'</video>';
 			v = document.getElementById('v');
-			video_id = response.video.id;
+			currVideo = response.video;
 			setup_video();
 		}
 	};
 	var url = 'flight-lines.php?method=get_video';
-	if (video_id) {
-		url += '&after_id=' + video_id;
+	if (currVideo) {
+		url += '&after_id=' + currVideo.id;
 	}
 	request.open('GET', url, true);
 	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -77,7 +77,9 @@ function setup_video() {
 		})();
 	}, false);
 	v.addEventListener('ended', function() {
-		save_image();
+		if (currVideo && currVideo.status != 'rendered') {
+			save_image();
+		}
 		threshold = 30;
 		countdown = 600;
 		ctx2.fillStyle = '#ffffff';
@@ -99,7 +101,7 @@ function setup_video() {
 			sec = '0' + sec;
 		}
 		var time = min + ':' + sec;
-	  document.getElementById('status').innerHTML = video_id + ' / ' + threshold + ' / ' + time;
+	  document.getElementById('status').innerHTML = currVideo.id + ' / ' + threshold + ' / ' + time;
 	}, false);
 	
 	/*navigator.getUserMedia({
@@ -154,7 +156,7 @@ function setup_controls() {
 function save_image() {
 	var data_uri = c2.toDataURL();
   var request = new XMLHttpRequest();
-	var url = 'flight-lines.php?method=save_rendering&id=' + video_id;
+	var url = 'flight-lines.php?method=save_rendering&id=' + currVideo.id;
 	request.open('POST', url, true);
 	request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
