@@ -26,12 +26,12 @@ function init() {
 		console.log('Error: no browser support');
 		return;
 	}
-	next_video();
-	setup_controls();
+	nextVideo();
+	setupControls();
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
-function next_video() {
+function nextVideo() {
   var request = new XMLHttpRequest();
 	request.onreadystatechange = function() {
 		var DONE = this.DONE || 4;
@@ -43,7 +43,7 @@ function next_video() {
 				'</video>';
 			v = document.getElementById('v');
 			currVideo = response.video;
-			setup_video();
+			setupVideo();
 		}
 	};
 	var url = 'flight-lines.php?method=get_video';
@@ -55,7 +55,7 @@ function next_video() {
 	request.send(null);
 }
 
-function setup_video() {
+function setupVideo() {
 	v.addEventListener('canplay', function() {
 		if (!playing) {
 			console.log('canplay');
@@ -78,7 +78,7 @@ function setup_video() {
 	}, false);
 	v.addEventListener('ended', function() {
 		if (currVideo && currVideo.status != 'rendered') {
-			save_image();
+			saveImage();
 		}
 		threshold = 30;
 		countdown = 600;
@@ -89,7 +89,7 @@ function setup_video() {
 			frame2.data[i + 1] = 255;
 			frame2.data[i + 2] = 255;
 		}
-		next_video();
+		nextVideo();
 	}, false);
 	v.addEventListener('timeupdate', function() {
 		var min = Math.floor(parseInt(v.currentTime) / 60);
@@ -110,7 +110,7 @@ function setup_video() {
 	}, playHandler, errorHandler);*/
 }
 
-function setup_controls() {
+function setupControls() {
   document.addEventListener('keydown', function(e) {
 		//console.log(e.keyCode);
 		var timeShift = e.shiftKey ? 60 : 10;
@@ -153,14 +153,14 @@ function setup_controls() {
 	}, false);
 }
 
-function save_image() {
-	var data_uri = c2.toDataURL();
+function saveImage() {
+	var dataURI = c2.toDataURL();
   var request = new XMLHttpRequest();
 	var url = 'flight-lines.php?method=save_rendering&id=' + currVideo.id;
 	request.open('POST', url, true);
 	request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-	request.send('image_data=' + encodeURIComponent(data_uri));
+	request.send('image_data=' + encodeURIComponent(dataURI));
 }
 
 function render() {
