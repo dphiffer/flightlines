@@ -3,7 +3,7 @@
 var currVideo = null;
 var started = false;
 var playing = false;
-var v; //= document.getElementById('v');
+var v;
 var s = document.getElementById('s');
 var c1 = document.getElementById('c1');
 var ctx1 = c1.getContext('2d');
@@ -20,12 +20,10 @@ var decayLimit = 200;
 
 var i, k0, k1, k2, diff;
 var frame0, frame1, frame2;
+var saveFrameCallback;
 
 function init() {
-	if (!checkBrowserSupport()) {
-		console.log('Error: no browser support');
-		return;
-	}
+	setupBrowserSupport();
 	nextVideo();
 	setupControls();
 }
@@ -74,6 +72,9 @@ function setupVideo() {
     (function animationLoop() {
 			window.requestAnimationFrame(animationLoop);
 			render();
+			if (saveFrameCallback) {
+				saveFrameCallback();
+			}
 		})();
 	}, false);
 	v.addEventListener('ended', function() {
@@ -103,11 +104,6 @@ function setupVideo() {
 		var time = min + ':' + sec;
 	  document.getElementById('status').innerHTML = currVideo.id + ' / ' + threshold + ' / ' + time;
 	}, false);
-	
-	/*navigator.getUserMedia({
-		video: true,
-		audio: false
-	}, playHandler, errorHandler);*/
 }
 
 function setupControls() {
@@ -212,28 +208,75 @@ function decay(k) {
   return k;
 }
 
-function checkBrowserSupport() {
-	navigator.getUserMedia = (navigator.getUserMedia ||
-	                          navigator.webkitGetUserMedia ||
-	                          navigator.mozGetUserMedia ||
-	                          navigator.msGetUserMedia);
-	window.requestAnimationFrame = (window.requestAnimationFrame ||
-	                                window.webkitRequestAnimationFrame ||
-	                                window.mozRequestAnimationFrame ||
-	                                function(callback) {
-	                                	window.setTimeout(callback, 1000 / 60);
-	                                });
-	return true; //navigator.getUserMedia;
+function setupIndexedDB() {
+	if (!window.indexedDB) {
+		return;
+	}
+	var db;
+	var request = window.indexedDB.open('flight_lines', 1);
+	request.onerror = function(event) {
+		console.error(event);
+	};
+	request.onupgradeneeded = function(event) {
+		var db = event.target.result;
+		var objectStore = db.createObjectStore('frames', {
+			keyPath: 'id'
+		});
+		objectStore.createIndex('video', 'video', {
+			unique: false
+		});
+		objectStore.transaction.oncomplete = function(event) {
+			saveFrameCallback = function() {
+			  if (!currVideo) {
+					return;
+				}
+				if (!currVideo.frame) {
+					currVideo.frame = 1;
+				} else {
+					currVideo.frame++;
+				}
+				var transaction = db.transaction(['frames'], 'readwrite');
+				transaction.oncomplete = function(event) {
+					// Added
+				};
+				transaction.onerror = function(event) {
+					console.error(event);
+				};
+				var objectStore = transaction.objectStore('frames');
+				objectStore.add({
+					id: currVideo.id + '-' + currVideo.frame,
+					video: currVideo.id,
+					image: c2.toDataURL()
+				});
+			};
+		});
+	};
 }
 
-function playHandler(stream) {
-	console.log('playHandler');
-	v.src = window.URL.createObjectURL(stream);
-	v.play();
-}
-
-function errorHandler() {
-	console.log("Error: " + err);
+function setupBrowserSupport() {
+	window.requestAnimationFrame = 
+		window.requestAnimationFrame ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		function(callback) {
+			window.setTimeout(callback, 1000 / 60);
+		};
+	window.indexedDB =
+		window.indexedDB ||
+		window.mozIndexedDB ||
+		window.webkitIndexedDB ||
+		window.msIndexedDB ||
+		null;
+	window.IDBTransaction =
+		window.IDBTransaction ||
+		window.webkitIDBTransaction ||
+		window.msIDBTransaction ||
+		null;
+	window.IDBKeyRange =
+		window.IDBKeyRange ||
+		window.webkitIDBKeyRange ||
+		window.msIDBKeyRange ||
+		null;
 }
 
 })();
