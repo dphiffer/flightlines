@@ -84,7 +84,32 @@ class FlightLines {
 	}
 
 	function get_next_video($after_id) {
-	  return null;
+		if (empty($after_id)) {
+			return $this->get_first_video();
+		}
+	  $query = $this->db->prepare("
+			SELECT *
+			FROM video
+			WHERE id > ?
+			ORDER BY created
+			LIMIT 1
+		");
+		$query->execute(array($after_id));
+		if ($query->rowCount() == 0) {
+			return $this->get_first_video();
+		} else {
+			return $query->fetch();
+		}
+	}
+
+	function get_first_video() {
+	  $query = $this->db->query("
+			SELECT *
+			FROM video
+			ORDER BY created
+			LIMIT 1
+		");
+		return $query->fetch();
 	}
 
 	function api_index() {
