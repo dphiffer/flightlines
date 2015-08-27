@@ -58,6 +58,7 @@ while [ 1 ] ; do
 				--height 540 \
 				--bitrate 12500000 \
 				--vflip \
+				--hflip \
 				--output "$basedir/$h264_file"
 
 			# Create the date folder if none exists
