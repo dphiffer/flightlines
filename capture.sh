@@ -67,7 +67,7 @@ while [ 1 ] ; do
 			fi
 
 			# Process mp4 file and move it to the videos folder
-			MP4Box -add "$basedir/$h264_file" "$basedir/$mp4_file"
+			MP4Box -add "$basedir/$h264_file" -fps 30 "$basedir/$mp4_file" > /dev/null
 			mv "$basedir/$mp4_file" "$videos/$date/$mp4_file"
 			rm "$basedir/$h264_file"
 
