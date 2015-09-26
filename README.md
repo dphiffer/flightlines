@@ -9,10 +9,6 @@
 * [Outdoor lighting enclosure](http://www.newegg.com/Product/Product.aspx?Item=N82E16803001092)
 * [6 foot USB cable](http://www.newegg.com/Product/Product.aspx?Item=N82E16812576072)
 
-## Physical enclosure
-
-(Coming)
-
 ## Preparing the Raspberry Pi before deployment
 
 * [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
@@ -20,6 +16,20 @@
 ```
 sudo raspi-config
 passwd
+```
+* Edit the wifi configuration
+```
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf 
+```
+* Add the following to the end, then save and exit (ctrl-x, then 'y')
+```
+network={
+    ssid="Wifi SSID"
+    psk="Wifi password"
+}
+```
+* Install software
+```
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install git gpac
