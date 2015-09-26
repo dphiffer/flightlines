@@ -49,6 +49,7 @@ At this point you'll have to decide on what to call your location. The name shou
 ```
 mkdir .ssh
 chmod 700 .ssh
+cd .ssh
 ssh-keygen
 ```
 * When prompted for a filename, enter the name you've chosen
