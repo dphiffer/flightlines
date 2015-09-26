@@ -54,7 +54,7 @@ ssh-keygen
 * When prompted for a filename, enter the name you've chosen
 * Don't choose a password for your private key (press enter twice)
 * Send the public key, `[your node name].pub`, to [Dan](http://phiffer.org/) via email
-* You may want to copy `[your node name].pub` to `authorized_keys` (to make logging in easier), and add `[your node name]` to any computer you might be logging in from frequently
+* You may want to copy `[your node name].pub` to `authorized_keys` (to make logging in easier), and add the key pair to any computer you might be logging in from frequently
 * Set permissions: `chmod 600 .ssh/*`
 
 ### crontab -e
