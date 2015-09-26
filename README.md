@@ -11,7 +11,7 @@
 
 ## Preparing the Raspberry Pi before deployment
 
-* [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
+* [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/) ([Mac instructions](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md))
 * Initial command line setup:
 ```
 sudo raspi-config
