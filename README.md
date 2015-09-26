@@ -41,12 +41,21 @@ sudo apt-get upgrade
 sudo apt-get install git gpac
 cd /home/pi
 git clone https://github.com/dphiffer/flightlines.git
+```
+
+At this point you'll have to decide on what to call your location. The name should be a short label, all lowercase, with no spaces. You may want to use hyphens if you want to use multiple words (e.g., "central-park").
+
+* Set up SSH keys
+```
 mkdir .ssh
 chmod 700 .ssh
+ssh-keygen
 ```
-* Copy public/private keys, `flightlines` and `flightlines.pub`, to `.ssh` (these are not distributed currently)
-* Copy `.ssh/flightlines.pub` to `.ssh/authorized_keys` (to make logging in easier)
-* `chmod 600 .ssh/*`
+* When prompted for a filename, enter the name you've chosen
+* Don't choose a password for your private key (press enter twice)
+* Send the public key, `[your node name].pub`, to [Dan](http://phiffer.org/) via email
+* You may want to copy `[your node name].pub` to `authorized_keys` (to make logging in easier), and add `[your node name]` to any computer you might be logging in from frequently
+* Set permissions: `chmod 600 .ssh/*`
 
 ### crontab -e
 
