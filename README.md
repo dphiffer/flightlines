@@ -28,6 +28,12 @@ network={
     psk="Wifi password"
 }
 ```
+* Choose a nearby [Raspbian mirror](http://www.raspbian.org/RaspbianMirrors) (e.g., http://mirror.umd.edu/raspbian/raspbian)
+* Change deb sources in `/etc/apt/sources.list`
+```
+deb http://[mirror]/raspbian wheezy main contrib non-free rpi
+deb-src http://[mirror]/raspbian wheezy main contrib non-free rpi
+```
 * Install software
 ```
 sudo apt-get update
