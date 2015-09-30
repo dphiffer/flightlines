@@ -2,19 +2,16 @@
 
 lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-location="nowhere"
 timeout=600000 # 10 minutes
+location="nowhere"
 
 # Don't run if stopped
 if [ -f "$basedir/stopped" ] ; then
 	exit 1
 fi
 
-if [ -f "$basedir/location" ] ; then
-	location=`cat $basedir/location`
-else
-	# Use default 'nowhere'
-	echo "Warning: no 'location' file found."
+if [ -f "/etc/hostname" ] ; then
+	location=`cat /etc/hostname`
 fi
 
 videos="$basedir/videos/$location"

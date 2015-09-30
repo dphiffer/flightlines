@@ -9,10 +9,8 @@ if [ -f "$basedir/stopped" ] ; then
 	exit 1
 fi
 
-if [ -f "$basedir/location" ] ; then
-	location=`cat $basedir/location`
-else
-	echo "Warning: no 'location' file found."
+if [ -f "/etc/hostname" ] ; then
+	location=`cat /etc/hostname`
 fi
 
 date=`date +%Y-%m-%d`
