@@ -46,6 +46,6 @@ touch "$lockfile"
 } >> "$logfile"
 
 # Sync log files
-rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/videos/$location/"
+rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/videos/$location/logs/"
 
 rm "$lockfile"
