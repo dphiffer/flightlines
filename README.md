@@ -12,11 +12,11 @@
 ## Preparing the Raspberry Pi before deployment
 
 * [Install Raspbian](https://www.raspberrypi.org/downloads/raspbian/) ([Mac instructions](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md))
-* Initial command line setup:
-```
-sudo raspi-config
-passwd
-```
+
+Boot up the RPi, and if you're directly at the terminal (i.e., with a keyboard and monitor plugged in) you will get dropped straight into the `raspi-config` setup menu.
+
+If you are booting headless, you'll need to start on an Ethernet connection. Figure out what the IP address is and then: `ssh pi@[IP address]` (default password is raspberry). Once you're logged in, type in `sudo raspi-config` to get the setup menu.
+
 * Edit the wifi configuration
 ```
 sudo nano /etc/wpa_supplicant/wpa_supplicant.conf 
@@ -35,6 +35,9 @@ dns-search phiffer.org
 dns-nameservers 4.2.2.1 4.2.2.2
 ```
 * Restart the network: `sudo service networking restart`
+
+At this point, if you're at the terminal 
+
 * Install software
 ```
 sudo apt-get update
@@ -44,37 +47,36 @@ sudo apt-get install git gpac firmware-linux-nonfree crda
 
 * Set up your wifi adapter region
 ```
-iw reg set US
+sudo iw reg set US
 ```
 
+At this point you'll have to decide on what to call your location. The name should be a short label, all lowercase, with no spaces. You may want to use hyphens if you want to use multiple words (e.g., "central-park").
+
+* Edit /etc/hostname to use your location ID
+* Edit /etc/hosts to set the hostname to IP 127.0.1.1
 * Reboot: `sudo shutdown -r now`
+
+* Set up SSH keys
+```
+mkdir .ssh
+cd .ssh
+ssh-keygen
+```
+* When prompted for a filename, enter the name (my-location) you've chosen
+* Don't choose a password for your private key (press enter twice)
+* Send the public key, `[your node name].pub`, to [Dan](http://phiffer.org/) via email
+* You may want to copy `[your node name].pub` to `authorized_keys` (to make logging in easier), and add the key pair to any computer you might be logging in from frequently
+* Set permissions
+
+```
+chmod 600 .ssh/*
+chmod 700 .ssh
+```
 * Download flightlines
 ```
 cd /home/pi
 git clone https://github.com/dphiffer/flightlines.git
 ```
-
-At this point you'll have to decide on what to call your location. The name should be a short label, all lowercase, with no spaces. You may want to use hyphens if you want to use multiple words (e.g., "central-park").
-
-* Setup hostname
-
-```
-echo "my-location" > /etc/hostname
-```
-
-* Edit /etc/hosts to use your new hostname for IP 127.0.1.1.
-* Set up SSH keys
-```
-mkdir .ssh
-chmod 700 .ssh
-cd .ssh
-ssh-keygen
-```
-* When prompted for a filename, enter the name you've chosen
-* Don't choose a password for your private key (press enter twice)
-* Send the public key, `[your node name].pub`, to [Dan](http://phiffer.org/) via email
-* You may want to copy `[your node name].pub` to `authorized_keys` (to make logging in easier), and add the key pair to any computer you might be logging in from frequently
-* Set permissions: `chmod 600 .ssh/*`
 
 ### crontab -e
 
