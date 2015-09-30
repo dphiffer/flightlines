@@ -51,8 +51,8 @@ while [ 1 ] ; do
 			raspivid \
 				--nopreview \
 				--timeout $timeout \
-				--width 960 \
-				--height 540 \
+				--width 1280 \
+				--height 720 \
 				--bitrate 12500000 \
 				--vflip \
 				--hflip \
