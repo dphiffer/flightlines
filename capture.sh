@@ -53,7 +53,7 @@ while [ 1 ] ; do
 				--timeout $timeout \
 				--width 1280 \
 				--height 720 \
-				--bitrate 12500000 \
+				--bitrate 8000000 \
 				--vflip \
 				--hflip \
 				--output "$basedir/$h264_file"
