@@ -28,12 +28,13 @@ network={
     psk="Wifi password"
 }
 ```
-* Choose a nearby [Raspbian mirror](http://www.raspbian.org/RaspbianMirrors) (e.g., http://mirror.umd.edu/raspbian/raspbian)
-* Change deb sources in `/etc/apt/sources.list`
+* Edit /etc/dhcp/dhclient.conf, and remove the lines related to DNS
+* Edit /etc/network/interfaces, and add the following lines to the wlan0 entry
 ```
-deb http://[mirror]/raspbian wheezy main contrib non-free rpi
-deb-src http://[mirror]/raspbian wheezy main contrib non-free rpi
+dns-search phiffer.org
+dns-nameservers 4.2.2.1 4.2.2.2
 ```
+* Restart the network: `sudo service networking restart`
 * Install software
 ```
 sudo apt-get update
@@ -81,7 +82,7 @@ Install the user cron jobs to start the video capture and sync files.
 
 ```
 @reboot /home/pi/flightlines/start.sh
-*/10 * * * * /home/pi/flightlines/sync.sh
+* * * * * /home/pi/flightlines/sync.sh
 ```
 
 ### sudo crontab -e
