@@ -17,6 +17,21 @@ Boot up the RPi, and if you're directly at the terminal (i.e., with a keyboard a
 
 If you are booting headless, you'll need to start on an Ethernet connection. Figure out what the IP address is and then: `ssh pi@[IP address]` (default password is raspberry). Once you're logged in, type in `sudo raspi-config` to get the setup menu.
 
+* Expand the filesystem
+* Change the root password
+* Internationalisation
+	* Change Locale: en_US-UTF-8 UTF-8 (and select it on the second screen)
+	* Change Time Zone
+	* Change Keyboard Layout
+		* Generic 105-key (Intl) PC
+		* Other
+		* English (US) > English (US)
+		* The default for the keyboard layout
+		* No compose key
+		* No to the X server terminate key
+* Enable camera
+* Finish (and reboot)
+
 * Edit the wifi configuration
 ```
 sudo nano /etc/wpa_supplicant/wpa_supplicant.conf 
@@ -28,7 +43,7 @@ network={
     psk="Wifi password"
 }
 ```
-* Edit /etc/dhcp/dhclient.conf, and remove the lines related to DNS
+* Edit /etc/dhcp/dhclient.conf, and remove the lines related to DNS (domain-name, domain-name-servers, domain-search, host-name, dhcp6.name-servers, dhcp6.domain-search)
 * Edit /etc/network/interfaces, and add the following lines to the wlan0 entry
 ```
 dns-search phiffer.org
@@ -36,13 +51,13 @@ dns-nameservers 4.2.2.1 4.2.2.2
 ```
 * Restart the network: `sudo service networking restart`
 
-At this point, if you're at the terminal 
+At this point, if you're at the terminal, you may want to switch to an SSH session.
 
 * Install software
 ```
 sudo apt-get update
 sudo apt-get upgrade
-sudo apt-get install git gpac firmware-linux-nonfree crda
+sudo apt-get install gpac firmware-linux-nonfree crda
 ```
 
 * Set up your wifi adapter region
@@ -69,9 +84,21 @@ ssh-keygen
 * Set permissions
 
 ```
-chmod 600 .ssh/*
-chmod 700 .ssh
+chmod 600 *
+chmod 700 .
 ```
+
+* Add the following to a new file /home/pi/.ssh/config
+
+```
+Host flserver
+     Hostname phiffer.org
+     User flightlines
+     IdentityFile /home/pi/.ssh/[your node name]
+```
+
+* Login to the server to establish the .known_hosts file: `ssh flserver` (`yes`, then `exit`)
+
 * Download flightlines
 ```
 cd /home/pi
@@ -93,26 +120,6 @@ Install the root cron job to reboot every morning.
 
 ```
 50 5 * * * shutdown -r now
-```
-
-### Flight Lines setup
-
-Set up the `location` file with a short identifier (lowercase with hyphens) of where the videos are coming from.
-
-```
-cd /home/pi/flightlines
-touch stopped
-```
-
-### /home/pi/.ssh/config
-
-Configure the `ssh flserver` shortcut in `/home/pi/.ssh/config`:
-
-```
-Host flserver
-     Hostname phiffer.org
-     User flightlines
-     IdentityFile /home/pi/.ssh/flightlines
 ```
 
 ### /etc/network/interfaces
