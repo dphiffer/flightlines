@@ -38,13 +38,30 @@ deb-src http://[mirror]/raspbian wheezy main contrib non-free rpi
 ```
 sudo apt-get update
 sudo apt-get upgrade
-sudo apt-get install git gpac
+sudo apt-get install git gpac firmware-linux-nonfree crda
+```
+
+* Set up your wifi adapter region
+```
+iw reg set US
+```
+
+* Reboot: `sudo shutdown -r now`
+* Download flightlines
+```
 cd /home/pi
 git clone https://github.com/dphiffer/flightlines.git
 ```
 
 At this point you'll have to decide on what to call your location. The name should be a short label, all lowercase, with no spaces. You may want to use hyphens if you want to use multiple words (e.g., "central-park").
 
+* Setup hostname
+
+```
+echo "my-location" > /etc/hostname
+```
+
+* Edit /etc/hosts to use your new hostname for IP 127.0.1.1.
 * Set up SSH keys
 ```
 mkdir .ssh
@@ -82,7 +99,6 @@ Set up the `location` file with a short identifier (lowercase with hyphens) of w
 ```
 cd /home/pi/flightlines
 touch stopped
-echo "curr-location" > location
 ```
 
 ### /home/pi/.ssh/config
