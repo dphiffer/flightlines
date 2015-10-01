@@ -110,8 +110,8 @@ git clone https://github.com/dphiffer/flightlines.git
 Install the user cron jobs to start the video capture and sync files.
 
 ```
-@reboot /home/pi/flightlines/start.sh
-* * * * * /home/pi/flightlines/sync.sh
+@reboot /home/pi/flightlines/start.sh >> /dev/null 2>&1
+* * * * * /home/pi/flightlines/sync.sh >> /dev/null 2>&1
 ```
 
 ### sudo crontab -e
@@ -119,7 +119,8 @@ Install the user cron jobs to start the video capture and sync files.
 Install the root cron job to reboot every morning.
 
 ```
-50 5 * * * shutdown -r now
+50 5 * * * /sbin/shutdown -r now >> /dev/null 2>&1
+*/10 * * * * /home/pi/flightlines/check-wifi.sh >> /dev/null 2>&1
 ```
 
 ### /etc/network/interfaces
