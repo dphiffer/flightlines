@@ -1,8 +1,14 @@
 #!/bin/bash
 
+min_time="70000"    # start at 7am
+max_time="180000"   # end at 6pm
+bitrate="10000000"  # 10 mb/s
+timeout="600000"    # 10 minutes
+width="1280"
+height="720"
+
 lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-timeout=600000 # 10 minutes
 location="nowhere"
 
 # Don't run if stopped
@@ -20,9 +26,6 @@ videos="$basedir/videos/$location"
 if [ -n "$1" ] ; then
 	timeout="$1"
 fi
-
-min_time="55959"  # start after 05:59:59
-max_time="200000" # end before 20:00:00
 
 # Don't run more than one capture script at a time
 if [ -f "$lockfile" ] ; then
@@ -51,9 +54,9 @@ while [ 1 ] ; do
 			raspivid \
 				--nopreview \
 				--timeout $timeout \
-				--width 1280 \
-				--height 720 \
-				--bitrate 8000000 \
+				--width $width \
+				--height $height \
+				--bitrate $bitrate \
 				--vflip \
 				--hflip \
 				--output "$basedir/$h264_file"
