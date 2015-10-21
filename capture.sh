@@ -2,10 +2,10 @@
 
 min_time="70000"    # start at 7am
 max_time="180000"   # end at 6pm
-bitrate="10000000"  # 10 mb/s
+bitrate="7500000"   # 7.5 mb/s
 timeout="600000"    # 10 minutes
-width="1280"
-height="720"
+width="1024"
+height="576"
 
 lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
