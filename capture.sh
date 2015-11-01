@@ -1,7 +1,7 @@
 #!/bin/bash
 
 min_time="70000"    # start at 7am
-max_time="180000"   # end at 6pm
+max_time="170000"   # end at 5pm
 bitrate="7500000"   # 7.5 mb/s
 timeout="600000"    # 10 minutes
 width="1024"
