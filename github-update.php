@@ -1,8 +1,20 @@
 <?php
+/*
 
-// Based on https://gist.github.com/webjay/3915531
+github-update.php
+---
+By Dan Phiffer <dan@phiffer.org>
+Based on https://gist.github.com/webjay/3915531
 
-// Go to 
+1. Go to https://github.com/[user]/[repo]/settings/hooks/new
+2. Payload URL: public URL of this script
+3. Content Type: application/x-www-form-urlencoded
+4. Disable SSL verification if necessary
+5. Which events would you like to trigger this webhook? Just the push event.
+6. Enable the active checkbox
+7. Click the [Add webhook] button
+
+*/
 
 if (empty($_POST['payload'])) {
 	die("Missing 'payload' POST parameter.");
