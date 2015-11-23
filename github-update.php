@@ -20,29 +20,35 @@ if (empty($_POST['payload'])) {
 	die("Missing 'payload' POST parameter.");
 }
 
-function github_update_syscall($cmd, $cwd) {
-  $descriptorspec = array(
-    1 => array('pipe', 'w'), // stdout is a pipe that the child will write to
-    2 => array('pipe', 'w')  // stderr
-  );
-  $resource = proc_open($cmd, $descriptorspec, $pipes, $cwd);
-  if (is_resource($resource)) {
-    $output = stream_get_contents($pipes[2]);
-    $output .= PHP_EOL;
-    $output .= stream_get_contents($pipes[1]);
-    $output .= PHP_EOL;
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-    proc_close($resource);
-    return $output;
-  }
+function github_update_syscall($cmd, $cwd = null) {
+	if (empty($cwd)) {
+		$cwd = __DIR__;
+	}
+	$descriptorspec = array(
+		1 => array('pipe', 'w'), // stdout is a pipe that the child will write to
+		2 => array('pipe', 'w')  // stderr
+	);
+	$resource = proc_open($cmd, $descriptorspec, $pipes, $cwd);
+	if (is_resource($resource)) {
+		$output = stream_get_contents($pipes[2]);
+		$output .= PHP_EOL;
+		$output .= stream_get_contents($pipes[1]);
+		$output .= PHP_EOL;
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		proc_close($resource);
+		return $output;
+	}
 }
 
-function github_update_current_branch ($cwd) {
-  $result = github_update_syscall('git branch', $cwd);
-  if (preg_match('/\\* (.*)/', $result, $matches)) {
-    return $matches[1];
-  }
+function github_update_current_branch($cwd = null) {
+	if (empty($cwd)) {
+		$cwd = __DIR__;
+	}
+	$result = github_update_syscall('git branch', $cwd);
+	if (preg_match('/\\* (.*)/', $result, $matches)) {
+		return $matches[1];
+	}
 	return 'master';
 }
 
@@ -57,8 +63,7 @@ if (!empty($payload->ref)) {
 
 // If your website directories have the same name as your repository this would work.
 $repository = $payload->repository->full_name;
-$cwd = __DIR__;
-$curr_branch = github_update_current_branch($cwd);
+$curr_branch = github_update_current_branch();
 
 // only pull if we are on the same branch
 if ($branch != $curr_branch) {
@@ -67,7 +72,7 @@ if ($branch != $curr_branch) {
 
 // pull from $branch
 $cmd = sprintf('git pull origin %s', $branch);
-$result = github_update_syscall($cmd, $cwd);
+$result = github_update_syscall($cmd);
 
 $output = '';
 
