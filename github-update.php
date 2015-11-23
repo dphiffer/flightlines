@@ -57,7 +57,7 @@ if (!empty($payload->ref)) {
 
 // If your website directories have the same name as your repository this would work.
 $repository = $payload->repository->full_name;
-$cwd = dirname(__DIR__);
+$cwd = __DIR__;
 $curr_branch = github_update_current_branch($cwd);
 
 // only pull if we are on the same branch
