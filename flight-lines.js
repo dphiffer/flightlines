@@ -10,8 +10,8 @@ var ctx1 = c1.getContext('2d');
 var c2 = document.getElementById('c2');
 var ctx2 = c2.getContext('2d');
 
-var w = 960;
-var h = 540;
+var w = 1024;
+var h = 576;
 var threshold = 30;
 var countdown = 600;
 
@@ -81,7 +81,7 @@ function setupVideo() {
 			saveImage();
 		}
 		threshold = 30;
-		countdown = 600;
+		countdown = 200;
 		ctx2.fillStyle = '#ffffff';
 		ctx2.fillRect(0, 0, w, h);
 		for (i = 0; i < frame1.data.length; i += 4) {
@@ -213,21 +213,16 @@ function decay(k) {
 }
 
 function checkBrowserSupport() {
-	navigator.getUserMedia = (navigator.getUserMedia ||
-	                          navigator.webkitGetUserMedia ||
-	                          navigator.mozGetUserMedia ||
-	                          navigator.msGetUserMedia);
 	window.requestAnimationFrame = (window.requestAnimationFrame ||
 	                                window.webkitRequestAnimationFrame ||
 	                                window.mozRequestAnimationFrame ||
 	                                function(callback) {
 	                                	window.setTimeout(callback, 1000 / 60);
 	                                });
-	return true; //navigator.getUserMedia;
+	return true;
 }
 
 function playHandler(stream) {
-	console.log('playHandler');
 	v.src = window.URL.createObjectURL(stream);
 	v.play();
 }

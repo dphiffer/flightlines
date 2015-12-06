@@ -7,7 +7,9 @@ class FlightLines {
 	var $db_version = 1;
 	var $locations = array(
 		'nowhere',
-		'jcal'
+		'jcal',
+		'1381-myrtle',
+		'flux-factory'
 	);
 	
 	function __construct() {
@@ -115,20 +117,20 @@ class FlightLines {
 	function api_index() {
 		$all_dates = !empty($_GET['all_dates']);
 		$videos = array();
-	  foreach ($this->locations as $location) {
-	  	if ($all_dates) {
-	  		$location_videos = $this->index_location($location);
-	  		$videos = array_merge($videos, $location_videos);
-	  	} else {
-	  		$today = date('Ymd');
-	  		$date_videos = $this->index_date($location, $today);
-	  		$videos = array_merge($videos, $date_videos);
-	  	}
-	  }
-	  $indexed = $this->index_videos($videos);
-	  $this->respond(array(
-	  	'indexed' => $indexed,
-	  	'all_dates' => $all_dates
+		foreach ($this->locations as $location) {
+			if ($all_dates) {
+				$location_videos = $this->index_location($location);
+				$videos = array_merge($videos, $location_videos);
+			} else {
+				$today = date('Ymd');
+				$date_videos = $this->index_date($location, $today);
+				$videos = array_merge($videos, $date_videos);
+			}
+		}
+		$indexed = $this->index_videos($videos);
+		$this->respond(array(
+			'indexed' => $indexed,
+			'all_dates' => $all_dates
 		));
 	}
 	
@@ -273,7 +275,10 @@ class FlightLines {
 	function get_url($path) {
 		$url = parse_url($_SERVER['REQUEST_URI']);
 	  $base_dir = dirname($url['path']);
-	  $host = "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['SERVER_NAME']}";
+		if ($base_dir == '/') {
+			$base_dir = '';
+		}
+	  $host = "//{$_SERVER['SERVER_NAME']}";
 	  return "{$host}{$base_dir}{$path}";
 	}
 
