@@ -76,12 +76,6 @@ class FlightLines {
 			return null;
 		}
 		$video = $query->fetch();
-		$query = $this->db->prepare("
-			UPDATE video
-			SET status = 'in-progress'
-			WHERE id = ?
-		");
-		$query->execute(array($video['id']));
 		return $video;
 	}
 

@@ -1,6 +1,26 @@
+@import url('inconsolata/stylesheet.css');
+@import url('reset.css');
+
 body {
-	margin: 0;
 	background: #dedede;
+	font: 14px inconsolata, menlo, monospace;
+}
+
+h1 {
+	font-weight: normal;
+	margin-bottom: 10px;
+}
+
+a {
+	color: inherit;
+}
+
+a:hover {
+	color: #198fde;
+}
+
+.gray50 {
+	color: #808080;
 }
 
 #c1 {
@@ -38,7 +58,6 @@ body.show-video #v {
 	top: 5px;
 	right: 5px;
 	padding: 5px;
-	font: 12px menlo, monospace;
 	text-align: right;
 	color: rgba(0, 0, 0, 0.5);
 	background: rgba(255, 255, 255, 0.8);
