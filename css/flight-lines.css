@@ -32,9 +32,8 @@ a:hover {
 
 #frame {
 	position: relative;
-	margin: 0 auto;
-	width: 1024px;
 	height: 576px;
+	width: 1024px;
 }
 
 #v, #c2 {
@@ -53,19 +52,12 @@ body.show-video #v {
 	position: relative;
 }
 
-#status {
-	position: absolute;
-	top: 5px;
-	right: 5px;
-	padding: 5px;
-	text-align: right;
-	color: rgba(0, 0, 0, 0.5);
-	background: rgba(255, 255, 255, 0.8);
-	z-index: 2;
-}
-
 #page {
 	width: 1024px;
 	margin: 0 auto;
 	padding: 10px;
+}
+
+#status {
+	margin-top: 10px;
 }

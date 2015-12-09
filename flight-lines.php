@@ -16,6 +16,10 @@ class FlightLines {
 		require_once __DIR__ . '/config.php';
 		date_default_timezone_set($timezone);
 		$this->setup_db($db_host, $db_name, $db_user, $db_password);
+		if (!empty($upstream_href)) {
+			$this->upstream_href = $upstream_href;
+		}
+		$this->setup_session();
 		$this->dispatch();
 	}
 
@@ -27,6 +31,27 @@ class FlightLines {
 			$method = 'api_' . $_GET['method'];
 			$this->$method();
 		}
+	}
+	
+	function get_video($after_id = null) {
+		$rendered = false;
+	  $video = $this->get_pending_video();
+	  if (empty($video)) {
+	  	$video = $this->get_next_video($after_id);
+	  	$rendered = true;
+	  }
+		$image = $this->get_image($video);
+		$location = $this->get_location($video);
+	  $date_dir = date('Ymd', strtotime($video['created']));
+	  $video_url = $this->get_url("/videos/{$video['location']}/$date_dir/{$video['id']}.mp4");
+	  return array(
+	  	'video_url' => $video_url,
+	  	'video' => $video,
+			'image' => $image,
+			'location' => $location,
+	  	'after_id' => $after_id,
+	  	'rendered' => $rendered
+		);
 	}
 
 	function api_help() {
@@ -41,27 +66,14 @@ class FlightLines {
 	  	'methods' => $methods
 		), 404);
 	}
-
+	
 	function api_get_video() {
 		$after_id = null;
 		if (!empty($_GET['after_id'])) {
 			$after_id = strtolower($_GET['after_id']);
 			$after_id = trim($after_id);
 		}
-		$rendered = false;
-	  $video = $this->get_pending_video();
-	  if (empty($video)) {
-	  	$video = $this->get_next_video($after_id);
-	  	$rendered = true;
-	  }
-	  $date_dir = date('Ymd', strtotime($video['created']));
-	  $video_url = $this->get_url("/videos/{$video['location']}/$date_dir/{$video['id']}.mp4");
-	  $this->respond(array(
-	  	'video_url' => $video_url,
-	  	'video' => $video,
-	  	'after_id' => $after_id,
-	  	'rendered' => $rendered
-		));
+		$this->respond($this->get_video($after_id));
 	}
 
 	function get_pending_video() {
@@ -107,58 +119,148 @@ class FlightLines {
 		");
 		return $query->fetch();
 	}
-
-	function api_index() {
-		$all_dates = !empty($_GET['all_dates']);
-		$videos = array();
-		foreach ($this->locations as $location) {
-			if ($all_dates) {
-				$location_videos = $this->index_location($location);
-				$videos = array_merge($videos, $location_videos);
-			} else {
-				$today = date('Ymd');
-				$date_videos = $this->index_date($location, $today);
-				$videos = array_merge($videos, $date_videos);
-			}
-		}
-		$indexed = $this->index_videos($videos);
-		$this->respond(array(
-			'indexed' => $indexed,
-			'all_dates' => $all_dates
+	
+	function get_image($video) {
+		$query = $this->db->prepare("
+			SELECT video_time, image_data_uri
+			FROM image
+			WHERE video = ?
+			  AND pixel_delta > 0
+			ORDER BY image_timestamp DESC
+			LIMIT 1
+		");
+		$query->execute(array(
+			$video['id']
 		));
+		$image = $query->fetch();
+		if (empty($image)) {
+			return null;
+		} else {
+			return array(
+				'video_time' => intval($image['video_time']),
+				'data_uri' => $image['image_data_uri']
+			);
+		}
 	}
 	
-	function api_save_rendering() {
-		$id = strtolower($_GET['id']);
-		$id = trim($id);
-		if (!preg_match('/^(\w+)-(\d{8})-(\d{6})$/', $id, $matches)) {
+	function get_location($video) {
+		$query = $this->db->prepare("
+			SELECT *
+			FROM location
+			WHERE id = ?
+		");
+		$query->execute(array(
+			$video['location']
+		));
+		return $query->fetch();
+	}
+	
+	function api_download_index() {
+		$this->api_index(true);
+	}
+
+	function api_index($nowrite = false) {
+		$videos = array();
+		$today = date('Ymd');
+		$older_date = $this->get_older_date();
+		if (!empty($this->upstream_href)) {
+			$videos = $this->get_upstream_videos();
+		} else {
+			foreach ($this->locations as $location) {
+				$today_videos = $this->index_date($location, $today);
+				$videos = array_merge($videos, $today_videos);
+				if (!empty($older_date)) {
+					$older_videos = $this->index_date($location, $older_date);
+					$videos = array_merge($videos, $older_videos);
+				}
+			}
+			dbug($older_date);
+		}
+		if ($nowrite) {
+			$this->respond(array(
+				'videos' => $videos
+			));
+		} else {
+			$indexed = $this->index_videos($videos);
+			$this->respond(array(
+				'indexed' => $indexed
+			));
+		}
+	}
+	
+	function api_save_image() {
+		$video = strtolower($_POST['video']);
+		$video = trim($video);
+		if (!preg_match('/^([a-z0-9-]+)-(\d{8})-(\d{6})$/', $video, $matches)) {
 			$this->respond(array(
 				'error' => 'Invalid video ID.',
-				'id' => $id
+				'video' => $video
 			), 500);
 		}
 		list(, $location, $date, $time) = $matches;
-		if (!file_exists(__DIR__ . "/videos/$location/$date/$id.mp4")) {
+		if (!file_exists(__DIR__ . "/videos/$location/$date/$video.mp4")) {
 			$this->respond(array(
 				'error' => 'Video not found.',
-				'id' => $id
+				'video' => $video
 			), 404);
 		}
-	  $base64 = substr($_POST['image_data'], strlen('data:image/png;base64,'));
-	  $binary = base64_decode($base64);
-	  $path = "/videos/$location/$date/$id.png";
-	  $filename = __DIR__ . $path;
-	  file_put_contents($filename, $binary);
-	  $this->respond(array(
-	  	'image_url' => $this->get_url($path),
-	  	'id' => $id
-		));
+		$video_start = strtotime("$date $time");
+		$video_time = intval($_POST['video_time']);
+		$image_timestamp = $video_start + $video_time;
+		$video_start = date('Y-m-d H:i:s', $video_start);
+		$pixel_delta = intval($_POST['pixel_delta']);
+		if ($pixel_delta == 0) {
+			$data_uri = '';
+		} else if (!empty($_POST['image_data_uri']) &&
+		           substr($_POST['image_data_uri'], 0, 22) != 'data:image/png;base64,') {
+			$this->respond(array(
+				'error' => 'Image should be a data URI.'
+			), 500);
+		} else {
+			$data_uri = $_POST['image_data_uri'];
+		}
 		$query = $this->db->prepare("
-			UPDATE video
-			SET status = 'rendered'
+			INSERT INTO image
+			(viewer, video, location, video_start, video_time, image_timestamp, image_data_uri, pixel_delta)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		");
+		$query->execute(array(
+			$this->viewer['id'],
+			$video,
+			$location,
+			$video_start,
+			$video_time,
+			$image_timestamp,
+			$data_uri,
+			$pixel_delta
+		));
+		$image = $this->db->lastInsertId();
+		$query = $this->db->prepare("
+			UPDATE viewer
+			SET updated = CURRENT_TIME,
+			    render_time = render_time + 10
 			WHERE id = ?
 		");
-		$query->execute(array($id));
+		$query->execute(array($this->viewer['id']));
+		if (!empty($_POST['status']) &&
+		    $_POST['status'] == 'rendered') {
+			$query = $this->db->prepare("
+				UPDATE video
+				SET status = ?
+				WHERE id = ?
+			");
+			$query->execute(array(
+				$_POST['status'],
+				$video
+			));
+			$video = $this->get_video($video);
+			$video['previous_id'] = $video;
+			$this->respond($video);
+		} else {
+			$this->respond(array(
+				'image' => $image
+			));
+		}
 	}
 
 	function index_videos($videos) {
@@ -243,7 +345,50 @@ class FlightLines {
 		}
 		return $videos;
 	}
-
+	
+	function get_older_date() {
+		$older_date = date('Ymd', strtotime('yesterday'));
+		if (!empty($_GET['older_date']) &&
+		    preg_match('/^\d{8}$/', $_GET['older_date'])) {
+			$older_date = $_GET['older_date'];
+		} else {
+			$query = $this->db->query("
+				SELECT DATE(created)
+				FROM video
+				ORDER BY created
+				LIMIT 1
+			");
+			if (!empty($query)) {
+				$oldest_date = $query->fetchColumn();
+				if (!empty($oldest_date)) {
+					$oldest_time = strtotime($oldest_date);
+					$older_date = date('Ymd', $oldest_time - 24 * 60 * 60);
+				}
+			}
+		}
+		return $older_date;
+	}
+	
+	function get_upstream_videos() {
+		$older_date = $this->get_older_date();
+		$url = "$this->upstream_href?method=download_index&older_date=$older_date";
+		$ch = curl_init();
+		dbug($url);
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_MAXREDIRS, 2);
+		$json = curl_exec($ch);
+		curl_close($ch);
+		$response = json_decode($json, true);
+		if (!empty($response['videos'])) {
+			return $response['videos'];
+		} else {
+			return array();
+		}
+	}
+	
 	function respond($args, $http_status = 200) {
 		$http_message = 'Mysterious';
 		$http_messages = array(
@@ -253,7 +398,8 @@ class FlightLines {
 			500 => 'Server Error'
 		);
 		$response = array(
-			'ok' => ($http_status == 200)
+			'ok' => ($http_status == 200),
+			'viewer' => $this->viewer
 		);
 		foreach ($args as $key => $value) {
 			$response[$key] = $value;
@@ -264,6 +410,7 @@ class FlightLines {
 		header("HTTP/1.1 $http_status $http_message");
 	  header('Content-Type: application/json', true);
 	  echo json_encode($response);
+		exit;
 	}
 	
 	function get_url($path) {
@@ -288,7 +435,6 @@ class FlightLines {
 			}
 		}
 		if ($this->db_table_exists($db_name, 'video')) {
-			dbug('exists');
 			return;
 		}
 		$db = $this->db;
@@ -296,6 +442,99 @@ class FlightLines {
 		if (is_writable(__DIR__)) {
 			file_put_contents(__DIR__ . '/db/.db_version', $this->db_version);
 		}
+	}
+	
+	function setup_session() {
+		session_set_save_handler(
+			array($this, 'session_open'),
+			array($this, 'session_close'),
+			array($this, 'session_read'),
+			array($this, 'session_write'),
+			array($this, 'session_destroy'),
+			array($this, 'session_gc')
+		);
+		session_set_cookie_params(60 * 60 * 24 * 365, '/');
+		session_name('flightlines');
+		if (session_status() == PHP_SESSION_NONE) {
+			session_start();
+		}
+		if (empty($_SESSION['viewer'])) {
+			$query = $this->db->prepare("
+				INSERT INTO viewer
+				(ip_address, user_agent, created, updated)
+				VALUES (?, ?, ?, ?)
+			");
+			$query->execute(array(
+				$_SERVER['REMOTE_ADDR'],
+				$_SERVER['HTTP_USER_AGENT'],
+				date('Y-m-d H:i:s'),
+				date('Y-m-d H:i:s')
+			));
+			$id = $this->db->lastInsertId();
+			$query = $this->db->prepare("
+				SELECT *
+				FROM viewer
+				WHERE id = ?
+			");
+			$query->execute(array($id));
+			$_SESSION['viewer'] = $query->fetch();
+		}
+		$this->viewer = $_SESSION['viewer'];
+	}
+	
+	function session_open() {
+		return (!empty($this->db));
+	}
+	
+	function session_close() {
+		return true;
+	}
+	
+	function session_read($id) {
+		$query = $this->db->prepare("
+			SELECT data
+			FROM session
+			WHERE id = ?
+		");
+		if ($query->execute(array($id))) {
+			return $query->fetchColumn();
+		} else {
+			return '';
+		}
+	}
+	
+	function session_write($id, $data) {
+		$access = time();
+		$query = $this->db->prepare("
+			REPLACE INTO session
+			(id, access, data)
+			VALUES (?, ?, ?)
+		");
+		$query->execute(array(
+			$id,
+			$access,
+			$data
+		));
+		return true;
+	}
+	
+	function session_destroy($id) {
+		$query = $this->db->prepare("
+			DELETE FROM session
+			WHERE id = ?
+		");
+		$query->execute(array($id));
+		return true;
+	}
+	
+	function session_gc($max) {
+		$old = time() - $max;
+		$query = $this->db->prepare("
+			DELETE FROM session
+			WHERE access < ?
+		");
+		$query->execute(array($old));
+		return true;
 	}
 
 	function db_table_exists($db_name, $table_name) {
