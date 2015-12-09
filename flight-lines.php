@@ -36,11 +36,18 @@ class FlightLines {
 	function get_video($after_id = null) {
 		$rendered = false;
 	  $video = $this->get_pending_video();
+		/*$video = array(
+			'id' => '1381-myrtle-20151205-165438',
+    	'location' => '1381-myrtle',
+    	'status' => 'pending',
+    	'created' => '2015-12-05 16:54:38'
+		);*/
 	  if (empty($video)) {
 	  	$video = $this->get_next_video($after_id);
 	  	$rendered = true;
 	  }
 		$image = $this->get_image($video);
+		//$image = null;
 		$location = $this->get_location($video);
 	  $date_dir = date('Ymd', strtotime($video['created']));
 	  $video_url = $this->get_url("/videos/{$video['location']}/$date_dir/{$video['id']}.mp4");
@@ -207,7 +214,7 @@ class FlightLines {
 		if ($pixel_delta == 0) {
 			$data_uri = '';
 		} else if (!empty($_POST['image_data_uri']) &&
-		           substr($_POST['image_data_uri'], 0, 22) != 'data:image/png;base64,') {
+		           substr($_POST['image_data_uri'], 0, 23) != 'data:image/jpeg;base64,') {
 			$this->respond(array(
 				'error' => 'Image should be a data URI.'
 			), 500);

@@ -111,7 +111,7 @@ function saveImage(finished) {
 	}
 	if (pixelDelta > 0 ||
 	    finished) {
-		var dataURI = c2.toDataURL();
+		var dataURI = c2.toDataURL('image/jpeg', 0.7);
 		data += '&image_data_uri=' + encodeURIComponent(dataURI);
 	}
 	request.open('POST', url, true);
