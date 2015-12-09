@@ -37,10 +37,10 @@ class FlightLines {
 		$rendered = false;
 	  $video = $this->get_pending_video();
 		/*$video = array(
-			'id' => '1381-myrtle-20151205-165438',
+			'id' => '1381-myrtle-20151102-140350',
     	'location' => '1381-myrtle',
     	'status' => 'pending',
-    	'created' => '2015-12-05 16:54:38'
+    	'created' => '2015-11-02 14:03:50'
 		);*/
 	  if (empty($video)) {
 	  	$video = $this->get_next_video($after_id);

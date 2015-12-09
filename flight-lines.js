@@ -11,7 +11,7 @@ var ctx2 = c2.getContext('2d');
 var w = 1024;
 var h = 576;
 var threshold = 30;
-var countdown = 50;
+var countdown = 100;
 
 var decayStep = 1.12;
 var decayLimit = 200;
@@ -176,7 +176,7 @@ function setupVideo() {
 	}, false);
 	v.addEventListener('ended', function() {
 		threshold = 30;
-		countdown = 50;
+		countdown = 100;
 		playing = false;
 		if (currVideo && currVideo.video.status != 'rendered') {
 			saveImage(true);
