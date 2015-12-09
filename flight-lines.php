@@ -426,12 +426,16 @@ class FlightLines {
 	}
 	
 	function get_url($path) {
-		$url = parse_url($_SERVER['REQUEST_URI']);
+		if (!empty($this->upstream_href)) {
+			$url = parse_url($this->upstream_href);
+		} else {
+			$url = parse_url($_SERVER['REQUEST_URI']);
+		}
 	  $base_dir = dirname($url['path']);
 		if ($base_dir == '/') {
 			$base_dir = '';
 		}
-	  $host = "//{$_SERVER['SERVER_NAME']}";
+	  $host = "//{$url['host']}";
 	  return "{$host}{$base_dir}{$path}";
 	}
 
