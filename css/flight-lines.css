@@ -92,9 +92,13 @@ body.show-video #v {
 }
 
 #more {
-	background: #ccc;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	background: rgba(200, 200, 200, 0.8);
 	padding: 10px 0 10px 20px;
 	text-align: left;
+	z-index: 10;
 }
 
 .right {

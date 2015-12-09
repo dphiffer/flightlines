@@ -271,10 +271,10 @@ function setupControls() {
 		e.preventDefault();
 		if (more.className.indexOf('hidden') == -1) {
 			more.className = 'hidden';
-			toggle.innerHTML = 'More controls';
+			toggle.innerHTML = 'Show controls';
 		} else {
 			more.className = '';
-			toggle.innerHTML = 'Less controls';
+			toggle.innerHTML = 'Hide controls';
 		}
 	}, false);
 }
