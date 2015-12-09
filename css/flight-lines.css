@@ -3,12 +3,22 @@
 
 body {
 	background: #dedede;
-	font: 14px inconsolata, menlo, monospace;
+	font: 14px/20px inconsolata, menlo, monospace;
 }
 
 h1 {
 	font-weight: normal;
 	margin-bottom: 10px;
+	float: left;
+}
+
+#viewer {
+	float: right;
+	text-align: right;
+}
+
+.clear {
+	clear: both;
 }
 
 a {
@@ -44,6 +54,14 @@ a:hover {
 	height: 576px;
 }
 
+#c2 {
+	transition: opacity 1s ease-out;
+}
+
+#c2.intro {
+	opacity: 0;
+}
+
 body.show-video #v {
 	z-index: 1;
 }
@@ -60,4 +78,27 @@ body.show-video #v {
 
 #status {
 	margin-top: 10px;
+	float: left;
+}
+
+#controls {
+	margin-top: 10px;
+	float: right;
+	text-align: right;
+}
+
+.hidden {
+	display: none;
+}
+
+#more {
+	background: #ccc;
+	padding: 10px 0 10px 20px;
+	text-align: left;
+}
+
+.right {
+	float: right;
+	width: 50px;
+	text-align: center;
 }

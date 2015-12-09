@@ -20,6 +20,7 @@ var i, k0, k1, k2, diff;
 var frame0, frame1, frame2;
 
 var pixelDelta = 0;
+document.getElementById('threshold').innerHTML = threshold;
 
 function init() {
 	if (!checkBrowserSupport()) {
@@ -41,7 +42,57 @@ function handleNextVideo() {
 			'</video>';
 		v = document.getElementById('v');
 		currVideo = response;
+		var d = currVideo.video.created.match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/);
+		currVideo.start = new Date(
+			parseInt(d[1]),
+			parseInt(d[2]) - 1,
+			parseInt(d[3]),
+			parseInt(d[4]),
+			parseInt(d[5]),
+			parseInt(d[6])
+		);
 		setupVideo();
+		currVideo.viewer.render_time = response.viewer.render_time;
+		updateViewer();
+		updateURL();
+	}
+}
+
+function updateURL() {
+	var time = new Date(
+		currVideo.start.getTime() +
+		parseInt(v.currentTime * 1000)
+	);
+	var yyyy = time.getFullYear();
+	var mm = zeroPrefix(time.getMonth() + 1);
+	var dd = zeroPrefix(time.getDate());
+	var hh = zeroPrefix(time.getHours());
+	var min = zeroPrefix(time.getMinutes());
+	var sec = zeroPrefix(time.getSeconds());
+	var url = '#/' + currVideo.location.id + '/' +
+						yyyy + '-' + mm + '-' + dd + '/' +
+						hh + ':' + min + ':' + sec;
+	//location.href = url;
+}
+
+function updateViewer() {
+	var viewer = document.getElementById('viewer');
+	var sec = parseInt(currVideo.viewer.render_time);
+	var hh = zeroPrefix(Math.floor(sec / 3600));
+	sec -= parseInt(hh) * 3600;
+	var mm = zeroPrefix(Math.floor(sec / 60));
+	sec -= parseInt(mm) * 60;
+	var ss = zeroPrefix(sec);
+	viewer.innerHTML = '<span class="gray50">Your render time contribution:</span> ' +
+	                   hh + ':' + mm + ':' + ss;
+}
+
+function updateViewerTime() {
+	var DONE = this.DONE || 4;
+	if (this.readyState === DONE) {
+		var response = JSON.parse(this.responseText);
+		currVideo.viewer.render_time = response.viewer.render_time;
+		updateViewer();
 	}
 }
 
@@ -55,6 +106,8 @@ function saveImage(finished) {
 	if (finished) {
 		data = 'status=rendered&' + data;
 		request.onreadystatechange = handleNextVideo;
+	} else {
+		request.onreadystatechange = updateViewerTime;
 	}
 	if (pixelDelta > 0 ||
 	    finished) {
@@ -65,9 +118,11 @@ function saveImage(finished) {
 	request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	request.send(data);
+	updateURL();
 }
 
 function nextVideo() {
+	playing = false;
   var request = new XMLHttpRequest();
 	request.onreadystatechange = handleNextVideo;
 	var url = 'flight-lines.php?method=get_video';
@@ -81,6 +136,7 @@ function nextVideo() {
 
 function setupVideo() {
 	var lastSave;
+	c2.className = 'intro';
 	v.addEventListener('canplay', function() {
 		if (!playing) {
 			lastSave = 0;
@@ -102,6 +158,9 @@ function setupVideo() {
 				frame2 = ctx2.getImageData(0, 0, w, h);
 			}
 			playing = true;
+			setTimeout(function() {
+				c2.className = '';
+			}, 3000);
 		}
 	});
 	v.addEventListener('play', function() {
@@ -124,21 +183,22 @@ function setupVideo() {
 		} else {
 			nextVideo();
 		}
-		//ctx2.fillStyle = '#ffffff';
-		//ctx2.fillRect(0, 0, w, h);
-		/*for (i = 0; i < frame1.data.length; i += 4) {
-			frame2.data[i] = 255;
-			frame2.data[i + 1] = 255;
-			frame2.data[i + 2] = 255;
-		}*/
 	}, false);
 	v.addEventListener('timeupdate', function() {
-		var start = new Date(currVideo.video.created.replace(' ', 'T') + '-0500');
-		var time = new Date(start.getTime() + v.currentTime * 1000);
+		var time = new Date(
+			currVideo.start.getTime() +
+			parseInt(v.currentTime * 1000)
+		);
+		var ampm = 'AM';
+		var hour = time.getHours();
+		if (time.getHours() > 12) {
+			hour -= 12;
+			ampm = 'PM';
+		}
 		document.getElementById('status').innerHTML = 
-			time.toLocaleTimeString() + ' ' +
-			time.toLocaleDateString() + ' <span class="gray50">' +
-			currVideo.location.title + '</span>';
+			hour + ':' + zeroPrefix(time.getMinutes()) + ':' + zeroPrefix(time.getSeconds()) + ' ' + ampm + ' ' +
+			time.getFullYear() + '-' + zeroPrefix(time.getMonth() + 1) + '-' + zeroPrefix(time.getDate()) + '<br><span class="gray50">' +
+			currVideo.location.title + ' [' + currVideo.location.lat + ', ' + currVideo.location.lng + ']</span>';
 		if (playing && v.currentTime - lastSave > 10) {
 			saveImage();
 			pixelDelta = 0;
@@ -162,10 +222,12 @@ function setupControls() {
 	  		v.currentTime += timeShift;
 	  	}
 	  } else if (e.keyCode == 38) {
+			e.preventDefault();
 	  	if (threshold + threshShift <= 255) {
 	  		threshold += threshShift;
 	  	}
 	  } else if (e.keyCode == 40) {
+			e.preventDefault();
 	  	if (threshold - threshShift >= 0) {
 	  		threshold -= threshShift;
 	  	}
@@ -180,12 +242,40 @@ function setupControls() {
 	  } else if (e.keyCode == 86) {
 	  	document.body.className = 'show-video';
 	  }
+		document.getElementById('threshold').innerHTML = threshold;
 	}, false);
 	
 	document.addEventListener('keyup', function(e) {
 		if (e.keyCode == 86) {
 	  	document.body.className = '';
 	  }
+	}, false);
+	
+	var frame = document.getElementById('frame');
+	frame.addEventListener('mousedown', function() {
+		document.body.className = 'show-video';
+	}, false);
+	
+	frame.addEventListener('mouseup', function() {
+		document.body.className = '';
+	}, false);
+	
+	document.getElementById('next').addEventListener('click', function(e) {
+		e.preventDefault();
+		nextVideo();
+	}, false);
+	
+	var toggle = document.getElementById('toggle');
+	toggle.addEventListener('click', function(e) {
+		var more = document.getElementById('more');
+		e.preventDefault();
+		if (more.className.indexOf('hidden') == -1) {
+			more.className = 'hidden';
+			toggle.innerHTML = 'More controls';
+		} else {
+			more.className = '';
+			toggle.innerHTML = 'Less controls';
+		}
 	}, false);
 }
 
@@ -238,6 +328,13 @@ function decay(k) {
   	k += decayStep;
   }
   return k;
+}
+
+function zeroPrefix(n) {
+	if (n < 10) {
+		n = '0' + n;
+	}
+	return n;
 }
 
 function checkBrowserSupport() {

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Flight Lines</title>
-    <link rel="stylesheet" href="css/flight-lines.css">
-  </head>
-  <body>
+	<head>
+		<meta charset="utf-8">
+		<title>Flight Lines</title>
+		<link rel="stylesheet" href="css/flight-lines.css">
+	</head>
+	<body>
 		<div id="page">
 			<h1>
 				Flight Lines
@@ -14,13 +14,26 @@
 					<a href="https://phiffer.org/">Dan Phiffer</a>
 				</span>
 			</h1>
-			<canvas id="c1" width="960" height="540"></canvas>
-	    <div id="frame">
+			<div id="viewer"></div>
+			<br class="clear">
+			<canvas id="c1" width="1024" height="576"></canvas>
+			<div id="frame">
 				<div id="vh"></div>
-	      <canvas id="c2" width="960" height="540"></canvas>
-	    </div>
+				<canvas id="c2" width="1024" height="576"></canvas>
+			</div>
 			<div id="status">Loading...</div>
+			<div id="controls">
+				<a href="#" id="next">Show me another</a><br>
+				<div id="more" class="hidden">
+					Toggle view: <span class="right">V</span><br>
+					Clear rendering: <span class="right">C</span><br>
+					Skip fwd / back: <span class="right">&larr; &rarr;</span><br>
+					Threshold <span id="threshold"></span>: <span class="right">&uarr; &darr;</span>
+				</div>
+				<a href="#" id="toggle" class="gray50">More controls</a>
+			</div>
+			<br class="clear">
 		</div>
 		<script src="flight-lines.js"></script>
-  </body>
+	</body>
 </html>

@@ -45,6 +45,7 @@ class FlightLines {
 	  $date_dir = date('Ymd', strtotime($video['created']));
 	  $video_url = $this->get_url("/videos/{$video['location']}/$date_dir/{$video['id']}.mp4");
 	  return array(
+			'viewer' => $this->viewer,
 	  	'video_url' => $video_url,
 	  	'video' => $video,
 			'image' => $image,
@@ -81,7 +82,7 @@ class FlightLines {
 			SELECT *
 			FROM video
 			WHERE status = 'pending'
-			ORDER BY created
+			ORDER BY RAND()
 			LIMIT 1
 		");
 		if ($query->rowCount() == 0) {
@@ -242,6 +243,17 @@ class FlightLines {
 			WHERE id = ?
 		");
 		$query->execute(array($this->viewer['id']));
+		$query = $this->db->prepare("
+			SELECT render_time
+			FROM viewer
+			WHERE id = ?
+		");
+		$query->execute(array($this->viewer['id']));
+		$_SESSION['render_time'] = $query->fetchColumn();
+		$this->viewer = array(
+			'id' => $_SESSION['viewer'],
+			'render_time' => $_SESSION['render_time']
+		);
 		if (!empty($_POST['status']) &&
 		    $_POST['status'] == 'rendered') {
 			$query = $this->db->prepare("
@@ -472,14 +484,18 @@ class FlightLines {
 			));
 			$id = $this->db->lastInsertId();
 			$query = $this->db->prepare("
-				SELECT *
+				SELECT id
 				FROM viewer
 				WHERE id = ?
 			");
 			$query->execute(array($id));
-			$_SESSION['viewer'] = $query->fetch();
+			$_SESSION['viewer'] = $query->fetchColumn();
+			$_SESSION['render_time'] = 0;
 		}
-		$this->viewer = $_SESSION['viewer'];
+		$this->viewer = array(
+			'id' => $_SESSION['viewer'],
+			'render_time' => $_SESSION['render_time']
+		);
 	}
 	
 	function session_open() {
