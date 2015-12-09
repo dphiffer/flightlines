@@ -423,14 +423,30 @@ class FlightLines {
 		if (!empty($this->upstream_href)) {
 			$url = parse_url($this->upstream_href);
 		} else {
-			$url = parse_url($_SERVER['REQUEST_URI']);
+			$protocol = $this->is_ssl() ? 'https://' : 'http://';
+			$url = parse_url($protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 		}
 	  $base_dir = dirname($url['path']);
 		if ($base_dir == '/') {
 			$base_dir = '';
 		}
-	  $host = "//{$url['host']}";
+	  $host = "{$url['scheme']}://{$url['host']}";
 	  return "{$host}{$base_dir}{$path}";
+	}
+	
+	function is_ssl() {
+		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+		    strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
+			return true;
+		} else if (isset($_SERVER['HTTPS']) &&
+		           (strtolower($_SERVER['HTTPS']) == 'on' ||
+		            $_SERVER['HTTPS'] == '1')) {
+			return true;
+		} else if (isset($_SERVER['SERVER_PORT']) &&
+		           $_SERVER['SERVER_PORT'] == '443') {
+			return true;
+		}
+		return false;
 	}
 
 	function setup_db($db_host, $db_name, $db_user, $db_password) {

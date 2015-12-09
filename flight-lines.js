@@ -38,7 +38,7 @@ function handleNextVideo() {
 		var response = JSON.parse(this.responseText);
 		document.getElementById('vh').innerHTML =
 			'<video id="v" width="1024" height="576" crossorigin="anonymous" autoplay>' +
-				'<source src="https:' + response.video_url + '" id="s" type="video/mp4">' +
+				'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
 			'</video>';
 		v = document.getElementById('v');
 		currVideo = response;
