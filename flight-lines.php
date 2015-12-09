@@ -232,7 +232,7 @@ class FlightLines {
 		$image = $this->db->lastInsertId();
 		$query = $this->db->prepare("
 			UPDATE viewer
-			SET updated = CURRENT_TIME,
+			SET updated = NOW(),
 			    render_time = render_time + 10
 			WHERE id = ?
 		");
