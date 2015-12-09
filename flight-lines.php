@@ -199,12 +199,6 @@ class FlightLines {
 			), 500);
 		}
 		list(, $location, $date, $time) = $matches;
-		if (!file_exists(__DIR__ . "/videos/$location/$date/$video.mp4")) {
-			$this->respond(array(
-				'error' => 'Video not found.',
-				'video' => $video
-			), 404);
-		}
 		$video_start = strtotime("$date $time");
 		$video_time = intval($_POST['video_time']);
 		$image_timestamp = $video_start + $video_time;
