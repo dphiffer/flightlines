@@ -1,4 +1,4 @@
-var currVideo = null;
+var state = null;
 var started = false;
 var playing = false;
 var v; //= document.getElementById('v');
@@ -20,6 +20,9 @@ var i, k0, k1, k2, diff;
 var frame0, frame1, frame2;
 
 var pixelDelta = 0;
+var suspendURLUpdates = false;
+var loadTime = null;
+
 document.getElementById('threshold').innerHTML = threshold;
 
 function init() {
@@ -29,21 +32,26 @@ function init() {
 	}
 	nextVideo();
 	setupControls();
+	setupHashListener();
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
 function handleNextVideo() {
 	var DONE = this.DONE || 4;
 	if (this.readyState === DONE) {
+		suspendURLUpdates = false;
 		var response = JSON.parse(this.responseText);
+		if (!response || !response.video || !response.video.url) {
+			return;
+		}
 		document.getElementById('vh').innerHTML =
 			'<video id="v" width="1024" height="576" crossorigin="anonymous" autoplay>' +
-				'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
+				'<source src="' + response.video.url + '" id="s" type="video/mp4">' +
 			'</video>';
 		v = document.getElementById('v');
-		currVideo = response;
-		var d = currVideo.video.created.match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/);
-		currVideo.start = new Date(
+		state = response;
+		var d = state.video.created.match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/);
+		state.videoStart = new Date(
 			parseInt(d[1]),
 			parseInt(d[2]) - 1,
 			parseInt(d[3]),
@@ -52,15 +60,18 @@ function handleNextVideo() {
 			parseInt(d[6])
 		);
 		setupVideo();
-		currVideo.viewer.render_time = response.viewer.render_time;
+		state.viewer.render_time = response.viewer.render_time;
 		updateViewer();
 		updateURL();
 	}
 }
 
 function updateURL() {
+	if (suspendURLUpdates) {
+		return;
+	}
 	var time = new Date(
-		currVideo.start.getTime() +
+		state.videoStart.getTime() +
 		parseInt(v.currentTime * 1000)
 	);
 	var yyyy = time.getFullYear();
@@ -69,15 +80,15 @@ function updateURL() {
 	var hh = zeroPrefix(time.getHours());
 	var min = zeroPrefix(time.getMinutes());
 	var sec = zeroPrefix(time.getSeconds());
-	var url = '#/' + currVideo.location.id + '/' +
+	var url = '#/' + state.location.id + '/' +
 						yyyy + '-' + mm + '-' + dd + '/' +
 						hh + ':' + min + ':' + sec;
-	//location.href = url;
+	location.href = url;
 }
 
 function updateViewer() {
 	var viewer = document.getElementById('viewer');
-	var sec = parseInt(currVideo.viewer.render_time);
+	var sec = parseInt(state.viewer.render_time);
 	var hh = zeroPrefix(Math.floor(sec / 3600));
 	sec -= parseInt(hh) * 3600;
 	var mm = zeroPrefix(Math.floor(sec / 60));
@@ -91,7 +102,7 @@ function updateViewerTime() {
 	var DONE = this.DONE || 4;
 	if (this.readyState === DONE) {
 		var response = JSON.parse(this.responseText);
-		currVideo.viewer.render_time = response.viewer.render_time;
+		state.viewer.render_time = response.viewer.render_time;
 		updateViewer();
 	}
 }
@@ -100,7 +111,7 @@ function saveImage(finished) {
 	var request = new XMLHttpRequest();
 	var url = 'flight-lines.php?method=save_image';
 	var data =
-		'video=' + currVideo.video.id +
+		'video=' + state.video.id +
 		'&video_time=' + parseInt(v.currentTime) +
 		'&pixel_delta=' + pixelDelta;
 	if (finished) {
@@ -121,13 +132,13 @@ function saveImage(finished) {
 	updateURL();
 }
 
-function nextVideo() {
+function nextVideo(refId, direction) {
 	playing = false;
   var request = new XMLHttpRequest();
 	request.onreadystatechange = handleNextVideo;
 	var url = 'flight-lines.php?method=get_video';
-	if (currVideo) {
-		url += '&after_id=' + currVideo.video.id;
+	if (refId && direction) {
+		url += '&ref_id=' + refId + '&direction=' + direction;
 	}
 	request.open('GET', url, true);
 	request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -140,10 +151,10 @@ function setupVideo() {
 	v.addEventListener('canplay', function() {
 		if (!playing) {
 			lastSave = 0;
-			if (currVideo.image &&
-			    currVideo.image.data_uri != '') {
-				v.currentTime = currVideo.image.video_time;
-				lastSave = currVideo.image.video_time;
+			if (state.image &&
+			    state.image.data_uri != '') {
+				v.currentTime = state.image.video_time;
+				lastSave = state.image.video_time;
 				var img = new Image;
 				img.onload = function() {
 					ctx1.drawImage(img, 0, 0);
@@ -151,8 +162,8 @@ function setupVideo() {
 					frame1 = ctx2.getImageData(0, 0, w, h);
 					frame2 = ctx2.getImageData(0, 0, w, h);
 				};
-				img.src = currVideo.image.data_uri;
-			} else if (!currVideo.previous_id) {
+				img.src = state.image.data_uri;
+			} else if (!state.previous_id) {
 				ctx2.fillStyle = '#ffffff';
 				ctx2.fillRect(0, 0, w, h);
 				frame2 = ctx2.getImageData(0, 0, w, h);
@@ -161,6 +172,14 @@ function setupVideo() {
 			setTimeout(function() {
 				c2.className = '';
 			}, 3000);
+			if (loadTime) {
+				console.log(loadTime);
+				console.log(state.videoStart);
+				var skip = Math.round((loadTime - state.videoStart.getTime()) / 1000);
+				console.log(skip);
+				v.currentTime = skip;
+				loadTime = null;
+			}
 		}
 	});
 	v.addEventListener('play', function() {
@@ -178,7 +197,7 @@ function setupVideo() {
 		threshold = 30;
 		countdown = 100;
 		playing = false;
-		if (currVideo && currVideo.video.status != 'rendered') {
+		if (state && state.video.status != 'rendered') {
 			saveImage(true);
 		} else {
 			nextVideo();
@@ -186,7 +205,7 @@ function setupVideo() {
 	}, false);
 	v.addEventListener('timeupdate', function() {
 		var time = new Date(
-			currVideo.start.getTime() +
+			state.videoStart.getTime() +
 			parseInt(v.currentTime * 1000)
 		);
 		var ampm = 'AM';
@@ -198,7 +217,7 @@ function setupVideo() {
 		document.getElementById('status').innerHTML = 
 			hour + ':' + zeroPrefix(time.getMinutes()) + ':' + zeroPrefix(time.getSeconds()) + ' ' + ampm + ' ' +
 			time.getFullYear() + '-' + zeroPrefix(time.getMonth() + 1) + '-' + zeroPrefix(time.getDate()) + '<br><span class="gray50">' +
-			currVideo.location.title + ' [' + currVideo.location.lat + ', ' + currVideo.location.lng + ']</span>';
+			state.location.title + ' [' + state.location.lat + ', ' + state.location.lng + ']</span>';
 		if (playing && v.currentTime - lastSave > 10) {
 			saveImage();
 			pixelDelta = 0;
@@ -217,10 +236,12 @@ function setupControls() {
 	  	} else {
 	  		v.currentTime = 0;
 	  	}
+			countdown = 100;
 	  } else if (e.keyCode == 39) {
 	  	if (v.currentTime + timeShift < v.duration) {
 	  		v.currentTime += timeShift;
 	  	}
+			countdown = 100;
 	  } else if (e.keyCode == 38) {
 			e.preventDefault();
 	  	if (threshold + threshShift <= 255) {
@@ -277,6 +298,33 @@ function setupControls() {
 			toggle.innerHTML = 'Hide controls';
 		}
 	}, false);
+}
+
+function setupHashListener() {
+	window.onhashchange = function() {
+		var hash = location.hash.match(/#\/([^\/]+)\/(\d{4})-(\d\d)-(\d\d)\/(\d\d):(\d\d):(\d\d)/);
+		if (hash) {
+			var hashLocation = hash[1];
+			var hashDate = new Date(
+				parseInt(hash[2]),
+				parseInt(hash[3]) - 1,
+				parseInt(hash[4]),
+				parseInt(hash[5]),
+				parseInt(hash[6]),
+				parseInt(hash[7])
+			);
+			var currTime = state.videoStart.getTime() + parseInt(v.currentTime * 1000);
+			var hashTimeDiff = Math.abs(hashDate.getTime() - currTime);
+			if (state.location.id != hashLocation ||
+			    hashTimeDiff > 1000 * 60) {
+				var videoId = hashLocation + '-' + hash[2] + hash[3] + hash[4] + '-' +
+				              hash[5] + hash[6] + hash[7];
+				suspendURLUpdates = true;
+				loadTime = hashDate.getTime();
+				nextVideo(videoId, 'before');
+			}
+		}
+	};
 }
 
 function render() {

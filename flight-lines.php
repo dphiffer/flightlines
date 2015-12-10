@@ -33,32 +33,31 @@ class FlightLines {
 		}
 	}
 	
-	function get_video($after_id = null) {
-		$rendered = false;
-	  $video = $this->get_pending_video();
+	function get_video($ref_id = null, $direction = null) {
+		if (!empty($ref_id) && !empty($direction)) {
+			$video = $this->get_adjacent_video($ref_id, $direction);
+		} else {
+			$video = $this->get_pending_video();
+		}
+	  $image = $this->get_image($video);
+		
 		/*$video = array(
 			'id' => '1381-myrtle-20151102-140350',
     	'location' => '1381-myrtle',
     	'status' => 'pending',
     	'created' => '2015-11-02 14:03:50'
-		);*/
-	  if (empty($video)) {
-	  	$video = $this->get_next_video($after_id);
-	  	$rendered = true;
-	  }
-		$image = $this->get_image($video);
-		//$image = null;
+		);
+		$image = null;*/
+		
 		$location = $this->get_location($video);
-	  $date_dir = date('Ymd', strtotime($video['created']));
-	  $video_url = $this->get_url("/videos/{$video['location']}/$date_dir/{$video['id']}.mp4");
-	  return array(
+		$video_dir = date('Ymd', strtotime($video['created']));
+		$video_path = "/videos/{$location['id']}/$video_dir/{$video['id']}.mp4";
+		$video['url'] = $this->get_url($video_path);
+		return array(
 			'viewer' => $this->viewer,
-	  	'video_url' => $video_url,
-	  	'video' => $video,
+			'video' => $video,
 			'image' => $image,
-			'location' => $location,
-	  	'after_id' => $after_id,
-	  	'rendered' => $rendered
+			'location' => $location
 		);
 	}
 
@@ -76,12 +75,15 @@ class FlightLines {
 	}
 	
 	function api_get_video() {
-		$after_id = null;
-		if (!empty($_GET['after_id'])) {
-			$after_id = strtolower($_GET['after_id']);
-			$after_id = trim($after_id);
+		$ref_id = null;
+		$direction = null;
+		if (!empty($_GET['ref_id']) &&
+		    !empty($_GET['direction'])) {
+			$ref_id = strtolower($_GET['ref_id']);
+			$ref_id = trim($ref_id);
+			$direction = $_GET['direction'];
 		}
-		$this->respond($this->get_video($after_id));
+		$this->respond($this->get_video($ref_id, $direction));
 	}
 
 	function get_pending_video() {
@@ -99,25 +101,24 @@ class FlightLines {
 		return $video;
 	}
 
-	function get_next_video($after_id) {
-		if (empty($after_id)) {
-			return $this->get_first_video();
-		}
-	  $query = $this->db->prepare("
+	function get_adjacent_video($ref_id, $direction) {
+		$op  = ($direction == 'after') ? '>' : '<';
+		$dir = ($direction == 'after') ? ''  : 'DESC';
+		$query = $this->db->prepare("
 			SELECT *
 			FROM video
-			WHERE id > ?
-			ORDER BY created
+			WHERE id $op ?
+			ORDER BY created $dir
 			LIMIT 1
 		");
-		$query->execute(array($after_id));
+		$query->execute(array($ref_id));
 		if ($query->rowCount() == 0) {
 			return $this->get_first_video();
 		} else {
 			return $query->fetch();
 		}
 	}
-
+	
 	function get_first_video() {
 	  $query = $this->db->query("
 			SELECT *
@@ -266,7 +267,7 @@ class FlightLines {
 				$_POST['status'],
 				$video
 			));
-			$video = $this->get_video($video);
+			$video = $this->get_video($video, 'after');
 			$video['previous_id'] = $video;
 			$this->respond($video);
 		} else {
