@@ -6,7 +6,7 @@
 		<link rel="stylesheet" href="css/flight-lines.css">
 	</head>
 	<body>
-		<div id="page">
+		<div id="page" class="loading">
 			<h1>
 				Flight Lines
 				<span class="gray50">
@@ -27,10 +27,12 @@
 					Threshold <span id="threshold"></span>: <span class="right">&uarr; &darr;</span>
 				</div>
 			</div>
-			<div id="status">Loading...</div>
+			<div id="status">
+				<span id="when"></span> [<a href="#" id="next">show me another</a>]<br>
+				<span id="where" class="gray50"></span>
+			</div>
 			<div id="controls">
-				<a href="#" id="next">Show me another</a><br>
-				<a href="#" id="toggle" class="gray50">Show controls</a>
+				<a href="#" id="toggle">Show controls</a>
 			</div>
 			<br class="clear">
 		</div>

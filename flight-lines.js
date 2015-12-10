@@ -181,6 +181,7 @@ function setupVideo() {
 				loadTime = null;
 			}
 		}
+		document.getElementById('page').className = '';
 	});
 	v.addEventListener('play', function() {
 		if (v.paused || v.ended || started) {
@@ -214,10 +215,18 @@ function setupVideo() {
 			hour -= 12;
 			ampm = 'PM';
 		}
-		document.getElementById('status').innerHTML = 
-			hour + ':' + zeroPrefix(time.getMinutes()) + ':' + zeroPrefix(time.getSeconds()) + ' ' + ampm + ' ' +
-			time.getFullYear() + '-' + zeroPrefix(time.getMonth() + 1) + '-' + zeroPrefix(time.getDate()) + '<br><span class="gray50">' +
-			state.location.title + ' [' + state.location.lat + ', ' + state.location.lng + ']</span>';
+		document.getElementById('when').innerHTML =
+			hour + ':' +
+			zeroPrefix(time.getMinutes()) + ':' +
+			zeroPrefix(time.getSeconds()) + ' ' +
+			ampm + ' ' +
+			time.getFullYear() + '-' +
+			zeroPrefix(time.getMonth() + 1) + '-' +
+			zeroPrefix(time.getDate());
+		document.getElementById('where').innerHTML =
+			state.location.title +
+			' [' + state.location.lat + ', ' +
+			state.location.lng + ']</span>';
 		if (playing && v.currentTime - lastSave > 10) {
 			saveImage();
 			pixelDelta = 0;
@@ -283,6 +292,7 @@ function setupControls() {
 	
 	document.getElementById('next').addEventListener('click', function(e) {
 		e.preventDefault();
+		countdown = 100;
 		nextVideo();
 	}, false);
 	
@@ -301,6 +311,7 @@ function setupControls() {
 }
 
 function setupHashListener() {
+	return;
 	window.onhashchange = function() {
 		var hash = location.hash.match(/#\/([^\/]+)\/(\d{4})-(\d\d)-(\d\d)\/(\d\d):(\d\d):(\d\d)/);
 		if (hash) {

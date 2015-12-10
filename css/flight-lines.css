@@ -106,3 +106,7 @@ body.show-video #v {
 	width: 50px;
 	text-align: center;
 }
+
+#page.loading #status {
+	display: none;
+}
