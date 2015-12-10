@@ -44,6 +44,7 @@ a:hover {
 	position: relative;
 	height: 576px;
 	width: 1024px;
+	background: #ccc;
 }
 
 #v, #c2 {
@@ -107,6 +108,7 @@ body.show-video #v {
 	text-align: center;
 }
 
-#page.loading #status {
+#page.loading #status,
+#page.loading #controls {
 	display: none;
 }
