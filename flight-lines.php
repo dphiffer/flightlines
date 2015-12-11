@@ -486,8 +486,8 @@ class FlightLines {
 				$response = $this->upstream_get('get_index', array(
 					'date' => $date
 				));
+				$videos = array_merge($videos, $response['videos']);
 			}
-			$videos = array_merge($videos, $response['videos']);
 		} else {
 			$response = $this->upstream_get('get_index', array(
 				'date' => date('Ymd')
