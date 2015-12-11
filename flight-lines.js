@@ -38,6 +38,7 @@ function init() {
 	}
 	setupControls();
 	setupGradient();
+	setupImages();
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
@@ -51,6 +52,9 @@ function handleVideo(response) {
 			'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
 		'</video>';
 	v = document.getElementById('v');
+	if (state) {
+		state.previous_video_date = state.video_date;
+	}
 	state = response;
 	var d = state.video_created.match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/);
 	state.video_start = new Date(
@@ -115,6 +119,7 @@ function saveImage(finished) {
 
 function getVideo(location, date, num) {
 	playing = false;
+	countdown = 100;
 	var args = {
 		location_id: location,
 		video_date: date,
@@ -190,9 +195,6 @@ function setupVideo() {
 		if (!playing) {
 			lastSave = 0;
 			if (state.image_url) {
-				v.currentTime = state.image_time;
-				lastSave = state.image_time;
-				updateURL();
 				var img = new Image();
 				img.onload = function() {
 					ctx1.drawImage(img, 0, 0);
@@ -201,12 +203,20 @@ function setupVideo() {
 					frame2 = ctx2.getImageData(0, 0, w, h);
 				};
 				img.src = state.image_url;
-				console.log(state.image_url);
-			} else if (!state.previous_video_id) {
+			} else if (state.previous_video_date != state.video_date) {
+				ctx1.fillStyle = '#ffffff';
 				ctx2.fillStyle = '#ffffff';
+				ctx1.fillRect(0, 0, w, h);
 				ctx2.fillRect(0, 0, w, h);
+				frame1 = ctx1.getImageData(0, 0, w, h);
 				frame2 = ctx2.getImageData(0, 0, w, h);
 			}
+			if (state.image_time) {
+				v.currentTime = state.image_time;
+				lastSave = state.image_time;
+				updateURL();
+			}
+			
 			playing = true;
 			setTimeout(function() {
 				c2.className = '';
@@ -280,13 +290,17 @@ function setupVideo() {
 		) / dayMax;
 		var dayPos = Math.floor(
 			1004 * dayPercent
-		) + 'px';
+		);
+		dayPos = Math.max(0, dayPos);
+		dayPos = Math.min(1003, dayPos);
 		var gradPos = Math.floor(
 			1024 * dayPercent
 		);
+		gradPos = Math.max(0, gradPos);
+		gradPos = Math.min(1023, gradPos);
 		var c = gradCtx.getImageData(gradPos, 5, 1, 1).data;
 		color = '#' + ('000000' + rgbToHex(c[0], c[1], c[2])).slice(-6);
-		document.getElementById('timeline-pos').style.left = dayPos;
+		document.getElementById('timeline-pos').style.left = dayPos + 'px';
 		document.getElementById('timeline-pos').style.borderBottomColor = color;
 	}, false);
 }
@@ -438,6 +452,22 @@ function setupGradient() {
 		gradCtx.drawImage(img, 0, 0, 1024, 10);
 	}
 	img.src = 'images/gradient.jpg';
+}
+
+function setupImages() {
+	apiGet('get_images', null, function(response) {
+		if (!response.images) {
+			return;
+		}
+		var html = '';
+		for (var i = 0, img; i < response.images.length; i++) {
+			img = response.images[i];
+			console.log(img);
+			html += '<a href="' + img.href + '">' +
+			        '<img src="' + img.url + '"></a>';
+		}
+		document.getElementById('images').innerHTML = html;
+	});
 }
 
 function render() {

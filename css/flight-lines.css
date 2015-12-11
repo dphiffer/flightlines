@@ -174,3 +174,57 @@ body.show-video #v {
 	border-right: 10px solid transparent;
 	border-bottom: 10px solid #de8776;
 }
+
+.images {
+	margin-top: 40px;
+	width: 1034px;
+}
+
+.images a {
+	width: 334px;
+	float: left;
+	margin: 0 10px 10px 0;
+}
+
+.images img {
+	width: 100%;
+	height: auto;
+	vertical-align: top;
+}
+
+.images:after {
+	clear: both;
+	content: "";
+	display: table;
+}
+
+#about {
+	float: left;
+	width: 678px;
+	margin: 40px 0;
+}
+
+#sidebar {
+	float: right;
+	width: 334px;
+	margin-top: 40px;
+}
+
+#sidebar li {
+	list-style: none;
+	margin-bottom: 5px;
+}
+
+#sidebar img {
+	width: 334px;
+	height: auto;
+	margin-bottom: 10px;
+}
+
+h2 {
+	margin-bottom: 20px;
+}
+
+p {
+	margin-bottom: 10px;
+}

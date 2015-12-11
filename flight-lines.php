@@ -134,39 +134,37 @@ class FlightLines {
 	
 	function api_get_images() {
 		$image_urls = array();
-		$query = $this->db->query("
-			SELECT image_id
+		$video_query = $this->db->query("
+			SELECT video_id, video_num, location_id, video_date
 			FROM image
 			WHERE image_delta > 0
 			GROUP BY video_id
-			ORDER BY image_id DESC
-			LIMIT 12
+			ORDER BY image_created DESC
+			LIMIT 12;
 		");
-		$ids = array();
-		$lookup = array();
-		$images = $query->fetchAll();
-		foreach ($images as $image) {
-			$image_id = $image['image_id'];
-			$ids[] = $image_id;
-		}
-		$ids = "'" . implode("', '", $ids) . "'";
-		dbug($ids);
-		$query = $this->db->query("
-			SELECT video_id, video_num, image_time
+		$videos = $video_query->fetchAll();
+		$time_query = $this->db->prepare("
+			SELECT image_id, image_time, viewer_id
 			FROM image
-			WHERE image_id IN ($ids)
+			WHERE video_id = ?
 			  AND image_delta > 0
-			ORDER BY image_id DESC
+			ORDER BY image_time DESC
 		");
-		$images = $query->fetchAll();
-		foreach ($images as $image) {
+		foreach ($videos as $video) {
+			$time_query->execute(array($video['video_id']));
+			$image = $time_query->fetch();
 			$image_url = $this->get_image_url(
-				$image['video_id'], $video['video_num'], $image['image_time']
+				$video['video_id'], $video['video_num'],
+				$image['image_time'], $image['viewer_id']
 			);
+			$href = '#/' . $video['location_id'] . '/' .
+							$video['video_date'] . '/' .
+							$video['video_num'] . '/' .
+							$image['image_time'];
 			$image_urls[] = array(
-				'image_id' => intval($image['image_id']),
-				'image_url' => $image_url,
-				'image_time' => intval($image['image_time'])
+				'id' => $image['image_id'],
+				'href' => $href,
+				'url' => $image_url
 			);
 		}
 		$response = array(
@@ -273,10 +271,6 @@ class FlightLines {
 			));
 			$next_video_num = $this->format_video_num($video_num + 1);
 			$video = $this->get_video($location_id, $video_date, $next_video_num);
-			$video['previous_video_id'] = $video_id;
-			$video['previous_image_url'] = $this->get_image_url(
-				$video_id, $video_num, $image_time
-			);
 			$this->respond($video);
 		} else {
 			$image = array(
@@ -288,6 +282,10 @@ class FlightLines {
 	}
 	
 	function get_random_video() {
+		$video = $this->get_video_by_time();
+		if (!empty($video)) {
+			return $video;
+		}
 		$query = $this->db->query("
 			SELECT *
 			FROM video
@@ -306,20 +304,43 @@ class FlightLines {
 		$video = $query->fetch();
 		return $video;
 	}
+	
+	function get_video_by_time() {
+		$query = $this->db->query("
+			SELECT *, CURRENT_TIME - TIME(video_created) AS image_time
+			FROM video
+			WHERE CURRENT_TIME - TIME(video_created) > 0
+			  AND CURRENT_TIME - TIME(video_created) < 600
+			ORDER BY RAND()
+			LIMIT 1
+		");
+		if ($query->rowCount() == 0) {
+			return array();
+		}
+		return $query->fetch();
+	}
 
 	function get_image($video) {
-		if (isset($_GET['image_time'])) {
+		if (isset($_GET['image_time']) ||
+		    isset($video['image_time'])) {
 			$query = $this->db->prepare("
 				SELECT image_id, image_time
 				FROM image
 				WHERE video_id = ?
 				  AND image_time < ?
+					AND ? - image_time < 50
 				ORDER BY image_time DESC
 				LIMIT 1
 			");
+			if (isset($_GET['image_time'])) {
+				$image_time = $_GET['image_time'];
+			} else if (isset($video['image_time'])) {
+				$image_time = $video['image_time'];
+			}
 			$query->execute(array(
 				$video['video_id'],
-				intval($_GET['image_time']) + 1
+				intval($image_time) + 1,
+				intval($image_time) + 1
 			));
 		} else {
 			$query = $this->db->prepare("
@@ -345,31 +366,35 @@ class FlightLines {
 		} else {
 			return array(
 				'image_url' => $this->get_image_url(
-					$video['video_id'], $video['video_num'], $image['image_time']
+					$video['video_id'], $video['video_num'],
+					$image['image_time'], $image['viewer_id']
 				),
 				'image_time' => intval($image['image_time'])
 			);
 		}
 	}
 	
-	function get_image_url($video_id, $video_num, $image_time) {
-		$path = $this->get_image_path($video_id, $video_num, $image_time);
+	function get_image_url($video_id, $video_num, $image_time, $viewer_id = null) {
+		$path = $this->get_image_path($video_id, $video_num, $image_time, $viewer_id);
 		if (!empty($path) &&
 				file_exists(__DIR__ . $path)) {
-			return $this->get_url($path);
+			return $this->get_url($path, true);
 		} else {
 			return '';
 		}
 	}
 	
-	function get_image_path($video_id, $video_num, $image_time) {
+	function get_image_path($video_id, $video_num, $image_time, $viewer_id = null) {
+		if (empty($viewer_id)) {
+			$viewer_id = $_SESSION['viewer_id'];
+		}
 		if (!preg_match('/^(.+?)-(\d{8})/', $video_id, $matches)) {
 			dbug("Could not decipher video_id $video_id.");
 			return null;
 		}
 		list(, $location_id, $video_date) = $matches;
 		$path = "/images/$location_id/$video_date/$video_num" .
-		        "/$image_time-{$_SESSION['viewer_id']}.jpg";
+		        "/$image_time-$viewer_id.jpg";
 		return $path;
 	}
 	
@@ -539,8 +564,8 @@ class FlightLines {
 		exit;
 	}
 	
-	function get_url($path) {
-		if (!empty($this->upstream_href)) {
+	function get_url($path, $local = false) {
+		if (!$local && !empty($this->upstream_href)) {
 			$url = parse_url($this->upstream_href);
 		} else {
 			$protocol = $this->is_ssl() ? 'https://' : 'http://';
