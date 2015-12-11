@@ -1,7 +1,8 @@
 config.php
 location
 videos/
-images/
+images/*
+images/!gradient.jpg
 logs/*.log
 *.mp4
 db/.db_version

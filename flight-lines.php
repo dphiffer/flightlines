@@ -131,6 +131,37 @@ class FlightLines {
 	function api_get_random_video() {
 		$this->respond($this->get_video());
 	}
+	
+	function api_get_images() {
+		$query = $this->db->prepare("
+			SELECT image_id, video_id, video_num, image_time
+			FROM image
+			WHERE viewer_id = ?
+			  AND image_delta > 0
+			GROUP BY video_id
+			ORDER BY image_created DESC
+			LIMIT 12
+		");
+		$query->execute(array($_SESSION['viewer_id']));
+		$images = $query->fetchAll();
+		$image_urls = array();
+		foreach ($images as $image) {
+			$image_url = $this->get_image_url(
+				$image['video_id'], $image['video_num'], $image['image_time']
+			);
+			$image_urls[] = array(
+				'image_id' => intval($image['image_id']),
+				'image_url' => $image_url,
+				'image_time' => intval($image['image_time'])
+			);
+		}
+		$response = array(
+			'images' => $image_urls
+		);
+		$viewer = $this->get_viewer();
+		$response = array_merge($response, $this->get_viewer());
+		$this->respond($response);
+	}
 
 	function api_get_index() {
 		if (empty($_GET['date']) ||
@@ -265,17 +296,34 @@ class FlightLines {
 	}
 
 	function get_image($video) {
-		$query = $this->db->prepare("
-			SELECT image_id, image_time
-			FROM image
-			WHERE video_id = ?
-			  AND image_delta > 0
-			ORDER BY image_time DESC
-			LIMIT 1
-		");
-		$query->execute(array(
-			$video['video_id']
-		));
+		if (isset($_GET['image_time'])) {
+			$query = $this->db->prepare("
+				SELECT image_id, image_time
+				FROM image
+				WHERE video_id = ?
+				  AND image_time < ?
+				ORDER BY image_time DESC
+				LIMIT 1
+			");
+			$query->execute(array(
+				$video['video_id'],
+				intval($_GET['image_time']) + 1
+			));
+		} else {
+			$query = $this->db->prepare("
+				SELECT image_id, image_time
+				FROM image
+				WHERE video_id = ?
+				  AND viewer_id = ?
+				  AND image_delta > 0
+				ORDER BY image_time DESC
+				LIMIT 1
+			");
+			$query->execute(array(
+				$video['video_id'],
+				$_SESSION['viewer_id']
+			));
+		}
 		if ($query->rowCount() == 0) {
 			return array();
 		}

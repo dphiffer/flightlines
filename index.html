@@ -17,24 +17,40 @@
 			<div id="viewer"></div>
 			<br class="clear">
 			<canvas id="c1" width="1024" height="576"></canvas>
-			<div id="frame">
-				<div id="vh"></div>
-				<canvas id="c2" width="1024" height="576" class="intro"></canvas>
-				<div id="more" class="hidden">
+			<div id="container" class="relative">
+				<div id="frame">
+					<div id="vh"></div>
+					<canvas id="c2" width="1024" height="576" class="intro"></canvas>
+				</div>
+				<div id="more">
 					Toggle view: <span class="right">V</span><br>
 					Clear rendering: <span class="right">C</span><br>
 					Skip fwd / back: <span class="right">&larr; &rarr;</span><br>
 					Threshold <span id="threshold"></span>: <span class="right">&uarr; &darr;</span>
 				</div>
+				<div id="link">
+					<div class="relative">
+						<a href="#" id="link-close">&times;</a>
+						<div id="link-label">Copy the URL of this location/time</div>
+						<input type="text" id="permalink">
+					</div>
+				</div>
 			</div>
 			<div id="status">
-				<span id="when"></span> [<a href="#" id="next">show me another</a>]<br>
-				<span id="where" class="gray50"></span>
+				<a href="#" id="toggle-link">Permalink</a> / <a href="#" id="skip">Skip</a><br>
+				<span id="when" class="gray50"></span> <span id="where" class="gray50"></span>
 			</div>
 			<div id="controls">
-				<a href="#" id="toggle">Show controls</a>
+				<a href="#" id="toggle-more">Show controls</a>
 			</div>
 			<br class="clear">
+			<div id="timeline" class="relative">
+				<canvas id="gradient" width="1024" height="10"></canvas>
+				<div id="timeline-pos"></div>
+				<span class="sunrise">Sunrise</span>
+				<span class="sunset">Sunset</span>
+				<br class="clear">
+			</div>
 		</div>
 		<script src="flight-lines.js"></script>
 	</body>

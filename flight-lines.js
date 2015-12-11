@@ -1,7 +1,7 @@
 var state = null;
 var started = false;
 var playing = false;
-var v; //= document.getElementById('v');
+var v = null;
 var s = document.getElementById('s');
 var c1 = document.getElementById('c1');
 var ctx1 = c1.getContext('2d');
@@ -22,6 +22,8 @@ var frame0, frame1, frame2;
 var pixelDelta = 0;
 var suspendURLUpdates = false;
 var loadTime = null;
+var gradCtx = null;
+var color;
 
 document.getElementById('threshold').innerHTML = threshold;
 
@@ -35,6 +37,7 @@ function init() {
 		getRandomVideo();
 	}
 	setupControls();
+	setupGradient();
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
@@ -68,8 +71,8 @@ function updateURL() {
 		return;
 	}
 	var url = '#/' + state.location_id + '/' +
-						state.video_date + '/' +
-						state.video_num;
+	          state.video_date + '/' +
+	          state.video_num;
 	location.href = url;
 }
 
@@ -105,17 +108,22 @@ function saveImage(finished) {
 	if (pixelDelta > 0 ||
 	    finished) {
 		args.image_data_uri = c2.toDataURL('image/jpeg', 0.7);
+		args.image_color = color;
 	}
 	apiPost('save_image', args, callback);
 }
 
 function getVideo(location, date, num) {
 	playing = false;
-	apiGet('get_video', {
+	var args = {
 		location_id: location,
 		video_date: date,
 		video_num: num
-	}, handleVideo);
+	};
+	if (loadTime) {
+		args.image_time = loadTime;
+	}
+	apiGet('get_video', args, handleVideo);
 }
 
 function getRandomVideo() {
@@ -184,7 +192,8 @@ function setupVideo() {
 			if (state.image_url) {
 				v.currentTime = state.image_time;
 				lastSave = state.image_time;
-				var img = new Image;
+				updateURL();
+				var img = new Image();
 				img.onload = function() {
 					ctx1.drawImage(img, 0, 0);
 					ctx2.drawImage(img, 0, 0);
@@ -192,7 +201,8 @@ function setupVideo() {
 					frame2 = ctx2.getImageData(0, 0, w, h);
 				};
 				img.src = state.image_url;
-			} else if (!state.previous_id) {
+				console.log(state.image_url);
+			} else if (!state.previous_video_id) {
 				ctx2.fillStyle = '#ffffff';
 				ctx2.fillRect(0, 0, w, h);
 				frame2 = ctx2.getImageData(0, 0, w, h);
@@ -202,12 +212,9 @@ function setupVideo() {
 				c2.className = '';
 			}, 3000);
 			if (loadTime) {
-				console.log(loadTime);
-				console.log(state.video_start);
-				var skip = Math.round((loadTime - state.video_start.getTime()) / 1000);
-				console.log(skip);
-				v.currentTime = skip;
+				v.currentTime = loadTime;
 				loadTime = null;
+				lastSave = loadTime;
 			}
 		}
 		document.getElementById('page').className = '';
@@ -264,9 +271,24 @@ function setupVideo() {
 			state.location_lng + ']</span>';
 		if (playing && v.currentTime - lastSave > 10) {
 			saveImage();
+			updateURL();
 			pixelDelta = 0;
 			lastSave = v.currentTime;
 		}
+		var dayMax = 10;
+		var dayPercent = (
+			time.getHours() + time.getMinutes() / 60 - 7
+		) / dayMax;
+		var dayPos = Math.floor(
+			1004 * dayPercent
+		) + 'px';
+		var gradPos = Math.floor(
+			1024 * dayPercent
+		);
+		var c = gradCtx.getImageData(gradPos, 5, 1, 1).data;
+		color = '#' + ('000000' + rgbToHex(c[0], c[1], c[2])).slice(-6);
+		document.getElementById('timeline-pos').style.left = dayPos;
+		document.getElementById('timeline-pos').style.borderBottomColor = color;
 	}, false);
 }
 
@@ -297,6 +319,22 @@ function setupControls() {
 	  		threshold -= threshShift;
 	  	}
 	  } else if (e.keyCode == 67) {
+			if (document.activeElement &&
+			    document.activeElement.getAttribute('id') == 'permalink') {
+				if (e.metaKey || e.ctrlKey) {
+					var label = document.getElementById('link-label');
+					var labelText = label.innerHTML;
+					label.innerHTML = 'URL copied!';
+					setTimeout(function() {
+						document.getElementById('link').className = '';
+						document.activeElement.blur();
+					}, 500);
+					setTimeout(function () {
+						label.innerHTML = labelText;
+					}, 1000);
+				}
+				return;
+			}
 	  	ctx2.fillStyle = '#ffffff';
 			ctx2.fillRect(0, 0, w, h);
 			for (i = 0; i < frame1.data.length; i += 4) {
@@ -325,33 +363,63 @@ function setupControls() {
 		document.body.className = '';
 	}, false);
 	
-	document.getElementById('next').addEventListener('click', function(e) {
+	document.getElementById('skip').addEventListener('click', function(e) {
 		e.preventDefault();
 		countdown = 100;
 		getRandomVideo();
 	}, false);
 	
-	var toggle = document.getElementById('toggle');
-	toggle.addEventListener('click', function(e) {
+	var toggleMore = document.getElementById('toggle-more');
+	toggleMore.addEventListener('click', function(e) {
 		var more = document.getElementById('more');
 		e.preventDefault();
-		if (more.className.indexOf('hidden') == -1) {
-			more.className = 'hidden';
-			toggle.innerHTML = 'Show controls';
-		} else {
+		if (more.className.indexOf('visible') != -1) {
 			more.className = '';
-			toggle.innerHTML = 'Hide controls';
+			toggleMore.innerHTML = 'Show controls';
+		} else {
+			more.className = 'visible';
+			toggleMore.innerHTML = 'Hide controls';
 		}
+	}, false);
+	
+	var toggleLink = document.getElementById('toggle-link');
+	toggleLink.addEventListener('click', function(e) {
+		var link = document.getElementById('link');
+		e.preventDefault();
+		if (link.className.indexOf('visible') != -1) {
+			link.className = '';
+		} else {
+			var href = location.protocol + '//' +
+			           location.hostname + location.pathname +
+			           '#/' + state.location_id + '/' +
+			           state.video_date + '/' +
+			           state.video_num + '/' +
+			           parseInt(v.currentTime);
+			link.className = 'visible';
+			var input = document.getElementById('permalink');
+			input.value = href;
+			input.select();
+			saveImage();
+		}
+	}, false);
+	
+	var close = document.getElementById('link-close');
+	close.addEventListener('click', function(e) {
+		e.preventDefault();
+		document.getElementById('link').className = '';
 	}, false);
 }
 
 function setupHashListener() {
 	window.onhashchange = function() {
-		var hash = location.hash.match(/#\/([^\/]+)\/(\d{8})\/(\d\d\d)/);
+		var hash = location.hash.match(/#\/([^\/]+)\/(\d{8})\/(\d\d\d)(\/\d+)?/);
 		if (hash) {
 			var hashLocation = hash[1];
 			var hashDate = hash[2];
 			var hashNum = hash[3];
+			if (hash[4]) {
+				loadTime = parseInt(hash[4].substr(1));
+			}
 			if (!state ||
 			    hashLocation != state.location_id ||
 			    hashDate != state.video_date ||
@@ -362,6 +430,15 @@ function setupHashListener() {
 		}
 		return false;
 	};
+}
+
+function setupGradient() {
+	gradCtx = document.getElementById('gradient').getContext('2d');
+	var img = new Image();
+	img.onload = function() {
+		gradCtx.drawImage(img, 0, 0, 1024, 10);
+	}
+	img.src = 'gradient.jpg';
 }
 
 function render() {
@@ -400,12 +477,23 @@ function render() {
 		}
 		if (frame0) {
 			ctx2.putImageData(frame2, 0, 0);
+			ctx2.globalCompositeOperation = 'multiply';
+			ctx2.fillStyle = color;
+			ctx2.fillRect(0, 0, w, h);
+			ctx2.globalCompositeOperation = 'source-over';
 		}
 	}
 	if (countdown > 0) {
 		countdown--;
 	}
 	frame0 = frame1;
+}
+
+function rgbToHex(r, g, b) {
+	if (r > 255 || g > 255 || b > 255) {
+		throw "Invalid color component";
+	}
+	return ((r << 16) | (g << 8) | b).toString(16);
 }
 
 function decay(k) {
