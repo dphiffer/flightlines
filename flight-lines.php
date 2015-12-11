@@ -133,21 +133,35 @@ class FlightLines {
 	}
 	
 	function api_get_images() {
-		$query = $this->db->prepare("
-			SELECT image_id, video_id, video_num, image_time
+		$image_urls = array();
+		$query = $this->db->query("
+			SELECT image_id
 			FROM image
-			WHERE viewer_id = ?
-			  AND image_delta > 0
+			WHERE image_delta > 0
 			GROUP BY video_id
-			ORDER BY image_created DESC
+			ORDER BY image_id DESC
 			LIMIT 12
 		");
-		$query->execute(array($_SESSION['viewer_id']));
+		$ids = array();
+		$lookup = array();
 		$images = $query->fetchAll();
-		$image_urls = array();
+		foreach ($images as $image) {
+			$image_id = $image['image_id'];
+			$ids[] = $image_id;
+		}
+		$ids = "'" . implode("', '", $ids) . "'";
+		dbug($ids);
+		$query = $this->db->query("
+			SELECT video_id, video_num, image_time
+			FROM image
+			WHERE image_id IN ($ids)
+			  AND image_delta > 0
+			ORDER BY image_id DESC
+		");
+		$images = $query->fetchAll();
 		foreach ($images as $image) {
 			$image_url = $this->get_image_url(
-				$image['video_id'], $image['video_num'], $image['image_time']
+				$image['video_id'], $video['video_num'], $image['image_time']
 			);
 			$image_urls[] = array(
 				'image_id' => intval($image['image_id']),
@@ -158,8 +172,6 @@ class FlightLines {
 		$response = array(
 			'images' => $image_urls
 		);
-		$viewer = $this->get_viewer();
-		$response = array_merge($response, $this->get_viewer());
 		$this->respond($response);
 	}
 

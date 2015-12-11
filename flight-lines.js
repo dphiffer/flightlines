@@ -253,7 +253,7 @@ function setupVideo() {
 		);
 		var ampm = 'AM';
 		var hour = time.getHours();
-		if (time.getHours() > 12) {
+		if (time.getHours() > 11) {
 			hour -= 12;
 			ampm = 'PM';
 		}
@@ -271,7 +271,6 @@ function setupVideo() {
 			state.location_lng + ']</span>';
 		if (playing && v.currentTime - lastSave > 10) {
 			saveImage();
-			updateURL();
 			pixelDelta = 0;
 			lastSave = v.currentTime;
 		}
@@ -438,7 +437,7 @@ function setupGradient() {
 	img.onload = function() {
 		gradCtx.drawImage(img, 0, 0, 1024, 10);
 	}
-	img.src = 'gradient.jpg';
+	img.src = 'images/gradient.jpg';
 }
 
 function render() {
