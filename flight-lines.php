@@ -404,7 +404,7 @@ class FlightLines {
 			} else {
 				$video_counter[$video_date]++;
 			}
-			$video_num = format_video_num($video_counter[$video_date]);
+			$video_num = $this->format_video_num($video_counter[$video_date]);
 			$query->execute(array(
 				$video['video_id'],
 				$video['location_id'],
