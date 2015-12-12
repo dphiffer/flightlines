@@ -38,7 +38,7 @@ touch "$lockfile"
 		flserver:/home/flightlines/videos/
 
 	# Update scripts
-	cd "$basedir" && git pull origin master -q
+	cd "$basedir" && git pull origin plantcam -q
 	
 	date=`date +%Y-%m-%d`
 	time=`date +%H:%M:%S`

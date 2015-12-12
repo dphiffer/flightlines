@@ -6,7 +6,7 @@ basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 `$basedir/stop.sh restarting`
 
 # Update scripts
-cd "$basedir" && git pull origin master -q
+cd "$basedir" && git pull origin plantcam -q
 
 # Remove stopped flag
 if [ -f "$basedir/stopped" ] ; then
