@@ -39,6 +39,7 @@ function init() {
 	setupControls();
 	setupGradient();
 	setupImages();
+	setupLogin();
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
@@ -47,6 +48,7 @@ function handleVideo(response) {
 	if (!response || !response.video_url) {
 		return;
 	}
+	countdown = 100;
 	document.getElementById('vh').innerHTML =
 		'<video id="v" width="1024" height="576" crossorigin="anonymous" autoplay>' +
 			'<source src="' + response.video_url + '" id="s" type="video/mp4">' +
@@ -119,7 +121,6 @@ function saveImage(finished) {
 
 function getVideo(location, date, num) {
 	playing = false;
-	countdown = 100;
 	var args = {
 		location_id: location,
 		video_date: date,
@@ -242,7 +243,6 @@ function setupVideo() {
 	}, false);
 	v.addEventListener('ended', function() {
 		threshold = 30;
-		countdown = 100;
 		playing = false;
 		if (state && state.video_status != 'rendered') {
 			saveImage(true);
@@ -378,7 +378,6 @@ function setupControls() {
 	
 	document.getElementById('skip').addEventListener('click', function(e) {
 		e.preventDefault();
-		countdown = 100;
 		getRandomVideo();
 	}, false);
 	
@@ -466,7 +465,106 @@ function setupImages() {
 			        '<img src="' + img.url + '"></a>';
 		}
 		document.getElementById('images').innerHTML = html;
+		if (response.login && response.login.email) {
+			setupLoginOptions(response);
+		}
 	});
+}
+
+function setupLogin() {
+	var tabs = document.querySelectorAll('#login a');
+	var login = document.getElementById('login');
+	document.getElementById('viewer').addEventListener('click', function(e) {
+		if (!e.shiftKey) {
+			return;
+		}
+		if (login.className.indexOf('visible') == -1) {
+			login.className = 'visible register';
+		} else {
+			login.className = '';
+		}
+	}, false);
+	tabs[0].addEventListener('click', function(e) {
+		e.preventDefault();
+		login.className = 'visible register';
+	}, false);
+	tabs[1].addEventListener('click', function(e) {
+		e.preventDefault();
+		login.className = 'visible login';
+	}, false);
+	document.getElementById('register-form').addEventListener('submit', function(e) {
+		e.preventDefault();
+		var email = document.querySelector('#register-form input[name=email]').value;
+		var password = document.querySelector('#register-form input[name=password]').value;
+		apiPost('register', {
+			email: email,
+			password: password
+		}, function(response) {
+			if (response.error) {
+				document.getElementById('login-response').innerHTML = response.error;
+			} else if (response.login) {
+				setupLoginOptions(response);
+			}
+		});
+	}, false);
+	document.getElementById('login-form').addEventListener('submit', function(e) {
+		e.preventDefault();
+		var email = document.querySelector('#login-form input[name=email]').value;
+		var password = document.querySelector('#login-form input[name=password]').value;
+		apiPost('login', {
+			email: email,
+			password: password
+		}, function(response) {
+			if (response.error) {
+				document.getElementById('login-response').innerHTML = response.error;
+			} else if (response.login) {
+				setupLoginOptions(response);
+			}
+		});
+	}, false);
+}
+
+function setupLoginOptions(response) {
+	document.getElementById('login').innerHTML = 'You are logged in as <strong>' + response.login.email + '</strong>';
+	document.getElementById('status').className = 'login-' + response.login.status;
+	if (document.getElementById('status').className.indexOf('login-admin') != -1) {
+		document.getElementById('first').addEventListener('click', function(e) {
+			e.preventDefault();
+			apiGet('get_first_video', null, handleVideo);
+		}, false);
+		document.getElementById('prev').addEventListener('click', function(e) {
+			e.preventDefault();
+			var args = {
+				before_video_id: state.video_id
+			};
+			if (e.shiftKey) {
+				args.before_video_date = state.video_date;
+			}
+			apiGet('get_prev_video', args, handleVideo);
+		}, false);
+		document.getElementById('next').addEventListener('click', function(e) {
+			e.preventDefault();
+			var args = {
+				after_video_id: state.video_id
+			};
+			if (e.shiftKey) {
+				args.after_video_date = state.video_date;
+			}
+			apiGet('get_next_video', args, handleVideo);
+		}, false);
+		document.getElementById('last').addEventListener('click', function(e) {
+			e.preventDefault();
+			apiGet('get_last_video', null, handleVideo);
+		}, false);
+		document.getElementById('remove').addEventListener('click', function(e) {
+			e.preventDefault();
+			if (confirm('Remove ' + state.video_id + '?')) {
+				apiGet('remove_video', {
+					video_id: state.video_id
+				}, handleVideo);
+			}
+		}, false);
+	}
 }
 
 function render() {

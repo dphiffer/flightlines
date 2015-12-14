@@ -26,7 +26,12 @@ class FlightLines {
 	}
 	
 	function get_video($location = null, $date = null, $num = null) {
-		if (!empty($location) && !empty($date) && !empty($num)) {
+		if (!empty($location) && is_array($location) &&
+		    !empty($location['location_id']) &&
+				!empty($location['video_date']) &&
+				!empty($location['video_num'])) {
+			$video = $location;
+		} else if (!empty($location) && !empty($date) && !empty($num)) {
 			$video = $this->get_video_by_num($location, $date, $num);
 		}
 		if (empty($video)) {
@@ -128,17 +133,152 @@ class FlightLines {
 		$this->respond($this->get_video($location, $date, $num));
 	}
 	
+	function api_get_first_video() {
+		$query = $this->db->query("
+			SELECT *
+			FROM video
+			WHERE video_status != 'removed'
+			ORDER BY video_id
+			LIMIT 1
+		");
+		$video = $query->fetch();
+		if (!empty($video)) {
+			$this->respond($this->get_video($video));
+		} else {
+			$this->respond(array(
+				'error' => 'Could not find the first video.'
+			), 404);
+		}
+	}
+	
+	function api_get_last_video() {
+		$query = $this->db->query("
+			SELECT *
+			FROM video
+			WHERE video_status != 'removed'
+			ORDER BY video_id DESC
+			LIMIT 1
+		");
+		$video = $query->fetch();
+		if (!empty($video)) {
+			$this->respond($this->get_video($video));
+		} else {
+			$this->respond(array(
+				'error' => 'Could not find the last video.'
+			), 404);
+		}
+	}
+	
+	function api_get_next_video($video_id = null) {
+		if (empty($video_id) &&
+		    empty($_GET['after_video_id'])) {
+			$this->respond(array(
+				'error' => "Please include an 'after_video_id' argument."
+			), 500);
+		} else if (empty($video_id)) {
+			$video_id = $_GET['after_video_id'];
+		}
+		$where_clause = "
+			video_status != 'removed'
+			AND video_id > ?
+		";
+		$values = array($video_id);
+		if (!empty($_GET['after_video_date'])) {
+			$where_clause .= "
+				AND video_date > ?
+			";
+			$values[] = $_GET['after_video_date'];
+		}
+		$query = $this->db->prepare("
+			SELECT *
+			FROM video
+			WHERE $where_clause
+			ORDER BY video_id
+			LIMIT 1
+		");
+		$query->execute($values);
+		$video = $query->fetch();
+		if (!empty($video)) {
+			$this->respond($this->get_video($video));
+		} else {
+			$this->api_get_first_video();
+		}
+	}
+	
+	function api_get_prev_video() {
+		if (empty($_GET['before_video_id'])) {
+			$this->respond(array(
+				'error' => "Please include a 'before_video_id' argument."
+			), 500);
+		}
+		$where_clause = "
+			video_status != 'removed'
+			AND video_id < ?
+		";
+		$values = array($_GET['before_video_id']);
+		if (!empty($_GET['before_video_date'])) {
+			$where_clause .= "
+				AND video_date < ?
+			";
+			$values[] = $_GET['before_video_date'];
+		}
+		$query = $this->db->prepare("
+			SELECT *
+			FROM video
+			WHERE $where_clause
+			ORDER BY video_id DESC
+			LIMIT 1
+		");
+		$query->execute($values);
+		$video = $query->fetch();
+		if (!empty($video)) {
+			$this->respond($this->get_video($video));
+		} else {
+			$this->api_get_first_video();
+		}
+	}
+	
 	function api_get_random_video() {
 		$this->find_latest_image = true;
 		$this->respond($this->get_video());
 	}
 	
+	function api_remove_video() {
+		if (empty($_SESSION['viewer_id']) ||
+		    empty($_SESSION['login_id'])) {
+			$this->respond(array(
+				'error' => 'You must be logged in to remove videos.'
+			), 401);
+		}
+		$login = $this->get_login();
+		if ($login['status'] != 'admin') {
+			$this->respond(array(
+				'error' => 'You must be logged in as an admin user to remove videos.'
+			), 401);
+		}
+		if (empty($_GET['video_id'])) {
+			$this->respond(array(
+				'error' => "Please include a 'video_id' argument."
+			), 500);
+		}
+		$query = $this->db->prepare("
+			UPDATE video
+			SET video_status = 'removed'
+			WHERE video_id = ?
+		");
+		$query->execute(array($_GET['video_id']));
+		$this->api_get_next_video($_GET['video_id']);
+	}
+	
 	function api_get_images() {
 		$image_urls = array();
 		$video_query = $this->db->query("
-			SELECT video_id, video_num, location_id, video_date
-			FROM image
-			WHERE image_delta > 0
+			SELECT i.video_id, i.video_num, i.location_id, i.video_date
+			FROM image AS i,
+			     video AS v
+			WHERE i.video_id = v.video_id
+			  AND v.video_status != 'removed'
+			  AND image_delta > 0
 			GROUP BY video_id
 			ORDER BY image_created DESC
 			LIMIT 12;
@@ -171,6 +311,9 @@ class FlightLines {
 		$response = array(
 			'images' => $image_urls
 		);
+		if (!empty($_SESSION['login_id'])) {
+			$response['login'] = $this->get_login();
+		}
 		$this->respond($response);
 	}
 
@@ -282,6 +425,76 @@ class FlightLines {
 		}
 	}
 	
+	function api_register() {
+		if (empty($_POST['email']) ||
+		    empty($_POST['password'])) {
+			$this->respond(array(
+				'error' => "Please include 'email' and 'password'."
+			), 500);
+		}
+		if (empty($_SESSION['viewer_id'])) {
+			$this->respond(array(
+				'error' => 'Your viewer session ID was not found.'
+			), 500);
+		}
+		$query = $this->db->prepare("
+			INSERT INTO login
+			(login_email, login_password, login_created, login_updated)
+			VALUES (?, ?, NOW(), NOW())
+		");
+		$email = trim(strtolower($_POST['email']));
+		$query->execute(array(
+			$email,
+			password_hash($_POST['password'],  PASSWORD_DEFAULT)
+		));
+		$_SESSION['login_id'] = $this->db->lastInsertId();
+		$query = $this->db->prepare("
+			UPDATE viewer
+			SET login_id = ?
+			WHERE viewer_id = ?
+		");
+		$query->execute(array(
+			$_SESSION['login_id'],
+			$_SESSION['viewer_id']
+		));
+		$this->respond(array(
+			'email' => $email,
+			'message' => 'You are now logged in.'
+		));
+	}
+	
+	function api_login() {
+		if (empty($_POST['email']) ||
+		    empty($_POST['password'])) {
+			$this->respond(array(
+				'error' => "Please include 'email' and 'password'."
+			), 500);
+		}
+		$email = trim(strtolower($_POST['email']));
+		$query = $this->db->prepare("
+			SELECT login_id, login_password
+			FROM login
+			WHERE login_email = ?
+		");
+		$query->execute(array($email));
+		if ($query->rowCount() == 0) {
+			$this->respond(array(
+				'error' => "Oops, ‘{$email}’ is not yet registered."
+			), 401);
+		}
+		$login = $query->fetch();
+		if (password_verify($_POST['password'], $login['login_password'])) {
+			$_SESSION['login_id'] = $login['login_id'];
+			$this->respond(array(
+				'login' => $this->get_login()
+			));
+		} else {
+			$this->respond(array(
+				'error' => "Sorry, that password was incorrect."
+			), 401);
+		}
+	}
+	
 	function get_random_video() {
 		$video = $this->get_video_by_time();
 		if (!empty($video)) {
@@ -298,6 +511,7 @@ class FlightLines {
 			$query = $this->db->query("
 				SELECT *
 				FROM video
+				WHERE video_status != 'removed'
 				ORDER BY RAND()
 				LIMIT 1
 			");
@@ -310,7 +524,8 @@ class FlightLines {
 		$query = $this->db->query("
 			SELECT *, CURRENT_TIME - TIME(video_created) AS image_time
 			FROM video
-			WHERE CURRENT_TIME - TIME(video_created) > 0
+			WHERE video_status != 'removed'
+			  AND CURRENT_TIME - TIME(video_created) > 0
 			  AND CURRENT_TIME - TIME(video_created) < 600
 			ORDER BY RAND()
 			LIMIT 1
@@ -546,8 +761,8 @@ class FlightLines {
 		$http_message = 'Mysterious';
 		$http_messages = array(
 			200 => 'OK',
+			401 => 'Unauthorized',
 			404 => 'Not Found',
-			403 => 'Not Allowed',
 			500 => 'Server Error'
 		);
 		$response = array(
@@ -614,6 +829,21 @@ class FlightLines {
 		return array(
 			'viewer_id' => (int) $_SESSION['viewer_id'],
 			'viewer_render_time' => $render_time
+		);
+	}
+	
+	function get_login() {
+		$query = $this->db->prepare("
+			SELECT login_email, login_status
+			FROM login
+			WHERE login_id = ?
+		");
+		$query->execute(array($_SESSION['login_id']));
+		$login = $query->fetch();
+		return array(
+			'id' => intval($_SESSION['login_id']),
+			'email' => $login['login_email'],
+			'status' => $login['login_status']
 		);
 	}
 	

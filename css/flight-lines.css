@@ -115,6 +115,7 @@ body.show-video #v {
 	left: 0;
 	right: auto;
 	padding: 15px;
+	width: 330px;
 }
 
 #more.visible,
@@ -122,14 +123,16 @@ body.show-video #v {
 	transform: translateY(0);
 }
 
-#link input {
+input[type=text],
+input[type=password],
+input[type=email] {
 	font: 14px/24px inconsolata, menlo, monospace;
 	border: 0;
 	color: #000;
 	background: #fff;
 	padding: 0 5px;
 	margin-top: 5px;
-	width: 300px;
+	width: calc(100% - 10px);
 }
 
 #link-close {
@@ -231,4 +234,83 @@ p {
 
 #credit {
 	margin: 40px 0;
+}
+
+#login {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 230px;
+	background: rgba(200, 200, 200, 0.8);
+	z-index: 10;
+	transform: translateY(-100%);
+	transition: transform 0.25s ease-out;
+	padding: 15px;
+}
+
+#login.visible {
+	transform: translateY(0);
+}
+
+#login a {
+	display: inline-block;
+	padding: 3px 7px;
+	text-decoration: none;
+}
+
+#login.register a.register,
+#login.login a.login {
+	background: #000;
+	color: #fff;
+}
+
+#login.register a.login,
+#login.login a.register {
+	color: #999;
+	background: rgba(225, 225, 225, 0.8);
+}
+
+#login.register a.login:hover,
+#login.login a.register:hover {
+	color: #000;
+	text-decoration: none;
+}
+
+#login form {
+	display: none;
+}
+
+#login-message {
+	padding-top: 5px;
+}
+
+#login.login #login-form,
+#login.register #register-form {
+	display: block;
+}
+
+#login label {
+	display: block;
+	margin-top: 5px;
+}
+
+#login input[type=submit] {
+	margin-top: 15px;
+}
+
+.admin-only {
+	display: none;
+}
+
+#status.login-admin span.admin-only {
+	display: inline;
+}
+
+#status .nav {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+#status .nav:hover {
+	color: #198fde;
 }

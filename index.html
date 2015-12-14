@@ -35,9 +35,47 @@
 						<input type="text" id="permalink">
 					</div>
 				</div>
+				<div id="login">
+					<a href="#register" class="register">Register</a>
+					<a href="#login" class="login">Login</a>
+					<div id="login-response"></div>
+					<form action="flight-lines.php?method=register" method="post" id="register-form">
+						<label>
+							Email
+							<input type="email" name="email">
+						</label>
+						<label>
+							Password
+							<input type="password" name="password">
+						</label>
+						<label>
+							Password again
+							<input type="password" name="password_again">
+						</label>
+						<input type="submit" value="Register">
+					</form>
+					<form action="flight-lines.php?method=login" method="post" id="login-form">
+						<label>
+							Email
+							<input type="email" name="email">
+						</label>
+						<label>
+							Password
+							<input type="password" name="password">
+						</label>
+						<input type="submit" value="Login">
+					</form>
+				</div>
 			</div>
 			<div id="status">
-				<a href="#" id="toggle-link">Permalink</a> / <a href="#" id="skip">Skip</a><br>
+				<a href="#" id="toggle-link">Permalink</a> / <a href="#" id="skip">Skip</a>
+				<span class="admin-only">
+					/ <span class="nav" id="first">First</span>
+					/ <span class="nav" id="prev">Prev</span>
+					/ <span class="nav" id="next">Next</span>
+					/ <span class="nav" id="last">Last</span>
+					/ <span class="nav" id="remove">Remove</span>
+				</span><br>
 				<span id="when" class="gray50"></span> <span id="where" class="gray50"></span>
 			</div>
 			<div id="controls">
