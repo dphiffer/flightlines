@@ -462,7 +462,6 @@ function setupImages() {
 		var html = '';
 		for (var i = 0, img; i < response.images.length; i++) {
 			img = response.images[i];
-			console.log(img);
 			html += '<a href="' + img.href + '">' +
 			        '<img src="' + img.url + '"></a>';
 		}

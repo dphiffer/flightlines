@@ -129,6 +129,7 @@ class FlightLines {
 	}
 	
 	function api_get_random_video() {
+		$this->find_latest_image = true;
 		$this->respond($this->get_video());
 	}
 	
@@ -342,7 +343,7 @@ class FlightLines {
 				intval($image_time) + 1,
 				intval($image_time) + 1
 			));
-		} else {
+		} else if (!empty($this->find_latest_image)) {
 			$query = $this->db->prepare("
 				SELECT image_id, image_time
 				FROM image
@@ -357,7 +358,7 @@ class FlightLines {
 				$_SESSION['viewer_id']
 			));
 		}
-		if ($query->rowCount() == 0) {
+		if (empty($query) || $query->rowCount() == 0) {
 			return array();
 		}
 		$image = $query->fetch();
@@ -636,6 +637,9 @@ class FlightLines {
 		$this->db = new PDO($db_dsn, $db_user, $db_password);
 		$this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
 		$this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+		$this->db->query("
+			SET time_zone = '-5:00'
+		");
 	}
 	
 	function setup_session() {

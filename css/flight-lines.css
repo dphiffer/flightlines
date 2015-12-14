@@ -228,3 +228,9 @@ h2 {
 p {
 	margin-bottom: 10px;
 }
+
+#credit {
+	margin: 40px 0;
+	font-size: 12px;
+	width: 334px;
+}
