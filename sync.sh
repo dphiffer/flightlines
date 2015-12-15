@@ -1,53 +1,55 @@
 #!/bin/bash
 
-basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-location="nowhere"
+lockfile="/tmp/flightlines-sync.lock"
+if ( set -o noclobber; echo "locked" > "$lockfile") 2> /dev/null; then
 
-# Don't run if stopped
-if [ -f "$basedir/stopped" ] ; then
-	exit 1
-fi
+	trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
 
-if [ -f "/etc/hostname" ] ; then
-	location=`cat /etc/hostname`
-fi
+	basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+	location="nowhere"
 
-date=`date +%Y-%m-%d`
-time=`date +%H:%M:%S`
-logfile="$basedir/logs/$location-sync-$date.log"
-
-# Don't run more than one sync script at a time
-if pgrep sync.sh >/dev/null 2>&1
-	then
-		echo "sync.sh already running."
+	# Don't run if stopped
+	if [ -f "$basedir/stopped" ] ; then
 		exit 1
-fi
+	fi
 
-{
-	echo "-- $date $time --"
+	if [ -f "/etc/hostname" ] ; then
+		location=`cat /etc/hostname`
+	fi
 
-	# Sync video files to server
-	rsync \
-		--recursive \
-		--verbose \
-		--ignore-existing \
-		--remove-source-files \
-		--timeout=30 \
-		"$basedir/videos/$location" \
-		flserver:/home/flightlines/videos/
-
-	# Update scripts
-	cd "$basedir" && git pull origin master -q
-	
 	date=`date +%Y-%m-%d`
 	time=`date +%H:%M:%S`
-	echo "Finished at $date $time"
-} >> "$logfile"
+	logfile="$basedir/logs/$location-sync-$date.log"
 
-# Sync log files
-rsync \
-	--recursive \
-	--exclude .keep-dir \
-	--timeout=30 \
-	"$basedir/logs/" \
-	"flserver:/home/flightlines/videos/$location/logs/"
+	{
+		echo "-- $date $time --"
+
+		# Sync video files to server
+		rsync \
+			--recursive \
+			--verbose \
+			--ignore-existing \
+			--remove-source-files \
+			--timeout=30 \
+			"$basedir/videos/$location" \
+			flserver:/home/flightlines/videos/
+
+		# Update scripts
+		cd "$basedir" && git pull origin master -q
+		
+		date=`date +%Y-%m-%d`
+		time=`date +%H:%M:%S`
+		echo "Finished at $date $time"
+	} >> "$logfile"
+
+	# Sync log files
+	rsync \
+		--recursive \
+		--exclude .keep-dir \
+		--timeout=30 \
+		"$basedir/logs/" \
+		"flserver:/home/flightlines/videos/$location/logs/"
+
+	# Release lockfile
+	rm -f "$lockfile"
+fi
