@@ -7,7 +7,6 @@ timeout="600000"    # 10 minutes
 width="1024"
 height="576"
 
-lockfile="/tmp/flightlines-capture.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location="nowhere"
 
@@ -28,9 +27,10 @@ if [ -n "$1" ] ; then
 fi
 
 # Don't run more than one capture script at a time
-if [ -f "$lockfile" ] ; then
-	echo "Lock file exists: $lockfile"
-	exit 1
+if pgrep capture.sh >/dev/null 2>&1
+	then
+		echo "capture.sh already running."
+		exit 1
 fi
 
 if [ ! -d "$videos" ] ; then

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-lockfile="/tmp/flightlines-sync.lock"
 basedir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 location="nowhere"
 
@@ -18,12 +17,11 @@ time=`date +%H:%M:%S`
 logfile="$basedir/logs/$location-sync-$date.log"
 
 # Don't run more than one sync script at a time
-if [ -f "$lockfile" ] ; then
-	echo "Lock file exists: $lockfile"
-	exit 1
+if pgrep sync.sh >/dev/null 2>&1
+	then
+		echo "sync.sh already running."
+		exit 1
 fi
-
-touch "$lockfile"
 
 {
 	echo "-- $date $time --"
@@ -34,6 +32,7 @@ touch "$lockfile"
 		--verbose \
 		--ignore-existing \
 		--remove-source-files \
+		--timeout=30 \
 		"$basedir/videos/$location" \
 		flserver:/home/flightlines/videos/
 
@@ -46,6 +45,9 @@ touch "$lockfile"
 } >> "$logfile"
 
 # Sync log files
-rsync -r --exclude .keep-dir "$basedir/logs/" "flserver:/home/flightlines/videos/$location/logs/"
-
-rm "$lockfile"
+rsync \
+	--recursive \
+	--exclude .keep-dir \
+	--timeout=30 \
+	"$basedir/logs/" \
+	"flserver:/home/flightlines/videos/$location/logs/"
