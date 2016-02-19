@@ -13,7 +13,7 @@ fi
 
 logfile="$basedir/logs/$location-start-$log_date.log"
 {
-	ifconfig
+	ifconfig wlan0
 
 	# Update scripts
 	cd "$basedir" && git pull origin master -q
