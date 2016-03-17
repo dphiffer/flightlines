@@ -1,0 +1,36 @@
+body {
+	margin: 0;
+}
+
+#map {
+	width: 100vw;
+	height: 100vh;
+	background: #dedede;
+}
+
+.leaflet-popup-content {
+	font-size: 2em;
+	line-height: 1em;
+}
+
+.leaflet-popup-content p {
+	margin-top: 0.5em;
+	margin-bottom: 0;
+}
+
+.where,
+.user {
+	font-size: 0.8em;
+	line-height: 1em;
+	color: #808080;
+}
+
+.leaflet-popup-content a {
+	color: #000;
+	text-decoration: none;
+}
+
+.leaflet-popup-content a:hover {
+	color: auto;
+	text-decoration: underline;
+}
