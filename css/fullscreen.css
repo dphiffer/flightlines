@@ -1,3 +1,7 @@
+body {
+	background: #444;
+}
+
 h1,
 #viewer,
 #status-links,
@@ -14,5 +18,9 @@ a {
 }
 
 #container {
-	margin-top: 50px;
+	margin-top: 40px;
+}
+
+.sunrise, .sunset {
+	color: #808080;
 }
