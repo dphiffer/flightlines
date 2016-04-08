@@ -654,3 +654,11 @@ function playHandler(stream) {
 function errorHandler() {
 	console.log("Error: " + err);
 }
+
+// Every 20s show the video for 3s
+setInterval(function() {
+	document.getElementById('c2').className = 'intro';
+	setTimeout(function() {
+		document.getElementById('c2').className = '';
+	}, 5000);
+}, 20000);

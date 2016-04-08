@@ -21,6 +21,6 @@ a {
 	margin-top: 35px;
 }
 
-.sunrise, .sunset {
-	color: #808080;
+.gray50, .sunrise, .sunset {
+	color: #999;
 }
