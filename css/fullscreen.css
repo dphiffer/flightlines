@@ -1,0 +1,13 @@
+#viewer,
+#status-links,
+#controls,
+#images,
+#about,
+#sidebar,
+.images {
+	display: none;
+}
+
+a {
+	text-decoration: none;
+}

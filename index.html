@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<title>Flight Lines</title>
 		<link rel="stylesheet" href="css/flight-lines.css">
+		<link rel="stylesheet" href="css/fullscreen.css">
 	</head>
 	<body>
 		<div id="page" class="loading">
@@ -68,14 +69,16 @@
 				</div>
 			</div>
 			<div id="status">
-				<a href="#" id="toggle-link">Permalink</a> / <a href="#" id="skip">Skip</a>
-				<span class="admin-only">
-					/ <span class="nav" id="first">First</span>
-					/ <span class="nav" id="prev">Prev</span>
-					/ <span class="nav" id="next">Next</span>
-					/ <span class="nav" id="last">Last</span>
-					/ <span class="nav" id="remove">Remove</span>
-				</span><br>
+				<div id="status-links">
+					<a href="#" id="toggle-link">Permalink</a> / <a href="#" id="skip">Skip</a>
+					<span class="admin-only">
+						/ <span class="nav" id="first">First</span>
+						/ <span class="nav" id="prev">Prev</span>
+						/ <span class="nav" id="next">Next</span>
+						/ <span class="nav" id="last">Last</span>
+						/ <span class="nav" id="remove">Remove</span>
+					</span>
+				</div>
 				<span id="when" class="gray50"></span> <span id="where" class="gray50"></span>
 			</div>
 			<div id="controls">
