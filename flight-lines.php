@@ -496,6 +496,34 @@ class FlightLines {
 		}
 	}
 	
+	function api_list_videos() {
+		echo '<pre>';
+		$list = file(__DIR__ . '/list.txt');
+		$q = $this->db->prepare("
+			SELECT video_id
+			FROM video
+			WHERE location_id = ?
+			  AND video_date = ?
+			  AND video_num = ?
+		");
+		error_reporting(E_ALL);
+		ini_set('display_errors', true);
+		foreach ($list as $video) {
+			if (preg_match('#([^/]+)/([^/]+)/([^/]+)#', $video, $matches)) {
+				list(, $location, $date, $video_num) = $matches;
+				//echo "$location, $date, $video_num\n";
+				$q->execute(array($location, $date, $video_num));
+				if ($q->rowCount() == 0) {
+					echo "none found.\n";
+				} else {
+					$r = $q->fetch();
+					echo "scp dp:~/phiffer.org/flightlines/videos/$location/$date/{$r['video_id']}.mp4 .\n";
+				}
+			}
+		}
+		exit;
+	}
+	
 	function get_random_video() {
 		$video = $this->get_video_by_time();
 		if (!empty($video)) {

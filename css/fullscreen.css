@@ -1,6 +1,7 @@
 body {
 	background: #444;
 	cursor: none;
+	margin: 0;
 }
 
 h1,
@@ -10,7 +11,10 @@ h1,
 #images,
 #about,
 #sidebar,
-.images {
+.images,
+#timeline,
+#status,
+br.clear {
 	display: none;
 }
 
@@ -18,8 +22,16 @@ a {
 	text-decoration: none;
 }
 
-#container {
-	margin-top: 35px;
+#container, #page {
+	margin-top: 0;
+	padding: 0;
+	max-width: 1024px;
+	width: 100%;
+}
+
+#frame, #v, #c2 {
+	width: 100%;
+	height: auto;
 }
 
 .gray50, .sunrise, .sunset {
