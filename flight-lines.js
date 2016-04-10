@@ -40,13 +40,6 @@ function init() {
 	setupGradient();
 	setupImages();
 	setupLogin();
-	
-	var h = document.getElementById('c2').offsetHeight;
-	var wh = window.innerHeight;
-	if (wh > h) {
-		var offset = Math.round((wh - h) / 2) + 'px';
-		document.body.style.transform = 'translateY(' + offset + ')';
-	}
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
@@ -310,6 +303,7 @@ function setupVideo() {
 		document.getElementById('timeline-pos').style.left = dayPos + 'px';
 		document.getElementById('timeline-pos').style.borderBottomColor = color;
 	}, false);
+	
 }
 
 function setupControls() {
