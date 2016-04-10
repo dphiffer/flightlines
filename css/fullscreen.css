@@ -4,6 +4,10 @@ body {
 	margin: 0;
 }
 
+body, html {
+	overflow: hidden;
+}
+
 h1,
 #viewer,
 #status-links,
@@ -25,7 +29,6 @@ a {
 #container, #page {
 	margin-top: 0;
 	padding: 0;
-	max-width: 1024px;
 	width: 100%;
 }
 
