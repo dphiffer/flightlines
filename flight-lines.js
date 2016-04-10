@@ -40,6 +40,13 @@ function init() {
 	setupGradient();
 	setupImages();
 	setupLogin();
+	
+	var h = document.getElementById('c2').offsetHeight;
+	var wh = window.innerHeight;
+	if (wh > h) {
+		var offset = Math.round((wh - h) / 2) + 'px';
+		document.body.style.transform = 'translateY(' + offset + ')';
+	}
 }
 window.addEventListener('DOMContentLoaded', init, false);
 
