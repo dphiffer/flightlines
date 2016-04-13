@@ -18,6 +18,19 @@ br.clear {
 	display: none;
 }
 
+#status {
+	float: none;
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+	background: rgba(0, 0, 0, 0.5);
+	padding: 2px 4px;
+}
+
+#where, #when {
+	color: rgba(255, 255, 255, 0.7);
+}
+
 a {
 	text-decoration: none;
 }
