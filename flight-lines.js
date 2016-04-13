@@ -194,6 +194,8 @@ function setupVideo() {
 	var lastSave;
 	c2.className = 'intro';
 	v.addEventListener('canplay', function() {
+		// don't do anything but play the video
+		return;
 		if (!playing) {
 			lastSave = 0;
 			if (state.image_url) {
