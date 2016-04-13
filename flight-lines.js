@@ -100,6 +100,7 @@ function updateViewerTime(response) {
 }
 
 function saveImage(finished) {
+	return;
 	var args = {
 		video_id: state.video_id,
 		video_num: state.video_num,
