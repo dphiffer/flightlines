@@ -194,8 +194,6 @@ function setupVideo() {
 	var lastSave;
 	c2.className = 'intro';
 	v.addEventListener('canplay', function() {
-		// don't do anything but play the video
-		return;
 		if (!playing) {
 			lastSave = 0;
 			if (state.image_url) {
@@ -247,17 +245,13 @@ function setupVideo() {
 	v.addEventListener('ended', function() {
 		threshold = 30;
 		playing = false;
-		if (state && state.video_status != 'rendered') {
-			saveImage(true);
-		} else {
-			var next_num = parseInt(state.video_num) + 1;
-			if (next_num < 10) {
-				next_num = '00' + next_num;
-			} else if (next_num < 100) {
-				next_num = '0' + next_num;
-			}
-			getVideo(state.location_id, state.video_date, next_num);
+		var next_num = parseInt(state.video_num) + 1;
+		if (next_num < 10) {
+			next_num = '00' + next_num;
+		} else if (next_num < 100) {
+			next_num = '0' + next_num;
 		}
+		getVideo(state.location_id, state.video_date, next_num);
 	}, false);
 	v.addEventListener('timeupdate', function() {
 		var time = new Date(
