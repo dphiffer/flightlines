@@ -660,3 +660,14 @@ setInterval(function() {
 		document.getElementById('c2').className = '';
 	}, 5000);
 }, 20000);
+
+// Once a minute check to see if the video got stuck
+var stuckCheck = null;
+setInterval(function() {
+	var whereWhen = document.getElementById('when').innerHTML + ' ' +
+	                document.getElementById('where').innerHTML;
+	if (stuckCheck == whereWhen) {
+		location.href = 'http://localhost/';
+	}
+	stuckCheck = whereWhen;
+}, 60000);
