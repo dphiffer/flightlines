@@ -32,7 +32,7 @@ if ( set -o noclobber; echo "locked" > "$lockfile") 2> /dev/null; then
 			--remove-source-files \
 			--timeout=30 \
 			"$basedir/videos/$location" \
-			flserver:/home/flightlines/videos/
+			flserver:/home/flightlines/kilroy/
 
 		# Update scripts
 		cd "$basedir" && git pull origin plantcam -q
@@ -48,7 +48,7 @@ if ( set -o noclobber; echo "locked" > "$lockfile") 2> /dev/null; then
 		--exclude .keep-dir \
 		--timeout=30 \
 		"$basedir/logs/" \
-		"flserver:/home/flightlines/videos/$location/logs/"
+		"flserver:/home/flightlines/kilroy/$location/logs/"
 
 	# Release lockfile
 	rm -f "$lockfile"
